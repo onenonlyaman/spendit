@@ -33,8 +33,14 @@ jobs:
         with:
           targets: x86_64-pc-windows-msvc
 
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
       - name: Install Frontend Dependencies
         run: npm ci
+
 
       - name: Build Frontend Assets
         run: npm run build

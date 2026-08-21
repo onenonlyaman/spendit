@@ -1,8 +1,9 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "SpendIt",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "identifier": "com.spendit.desktop",
+
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://127.0.0.1:3000",
