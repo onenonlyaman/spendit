@@ -74,9 +74,11 @@ export const OnboardingGuideModal: React.FC<OnboardingGuideModalProps> = ({ onCl
           {/* Header & Step Counter */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-xl bg-apple-blue flex items-center justify-center text-white font-bold text-sm">
-                S
-              </div>
+              <img
+                src="/logo.png"
+                alt="SpendIt Logo"
+                className="w-8 h-8 rounded-xl object-contain shadow-sm"
+              />
               <div>
                 <span className="text-xs uppercase font-mono tracking-wider text-ink-400">
                   SpendIt Welcome

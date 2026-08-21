@@ -85,7 +85,7 @@ graph TD
 ```
 spendit/
 ├── index.html                  # Main web entry point with Google Fonts (Newsreader, Space Mono, Caveat)
-├── package.json                # Project dependencies (v1.1.0, motion, tauri plugins)
+├── package.json                # Project dependencies (v1.1.1, motion, tauri plugins)
 ├── tsconfig.json               # Strict TypeScript configuration
 ├── vite.config.ts              # Vite bundler configuration (port 3000)
 ├── tailwind.config.js          # Custom theme tokens (Apple colors, parchment, mineral inks)

@@ -6,7 +6,7 @@
 
 ### *The Smyth-Sewn Archival Ledger & Hand-Stitched Financial Folio*
 
-[![Version](https://img.shields.io/badge/version-1.1.0-C07D2B.svg?style=for-the-badge)](https://github.com/onenonlyaman/spendit/releases)
+[![Version](https://img.shields.io/badge/version-1.1.1-C07D2B.svg?style=for-the-badge)](https://github.com/onenonlyaman/spendit/releases)
 [![Release Build](https://img.shields.io/github/actions/workflow/status/onenonlyaman/spendit/release.yml?style=for-the-badge&logo=github&logoColor=white&label=Release%20Build)](https://github.com/onenonlyaman/spendit/actions/workflows/release.yml)
 [![Tauri v2](https://img.shields.io/badge/Tauri_v2-Desktop_%26_Android-24C8D8.svg?style=for-the-badge&logo=tauri&logoColor=white)](https://tauri.app)
 [![React 18](https://img.shields.io/badge/React_18-TypeScript-61DAFB.svg?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org)
