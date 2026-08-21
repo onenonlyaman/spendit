@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "SpendIt",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "identifier": "com.spendit.desktop",
   "build": {
     "frontendDist": "../dist",
@@ -42,10 +42,11 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQwODVCNkJEQzZCRjAzNDkKUldSSkE3L0d2YmFGMEJBd0g4aVU0eDNrRWp5QmR5QThmYlY0OTNEK2IvRUZkWVd4WDhtelRLa0UK",
       "endpoints": [
-        "https://github.com/spendit/spendit/releases/latest/download/latest.json"
+        "https://github.com/onenonlyaman/spendit/releases/latest/download/latest.json"
       ]
     }
   }
 }
+
 
 

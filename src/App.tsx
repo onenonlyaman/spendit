@@ -12,8 +12,11 @@ import { SimulatorView } from './components/simulator/SimulatorView';
 import { FinanceProvider, useFinance } from './context/FinanceContext';
 
 import { UpdateModal } from './components/common/UpdateModal';
+import { CustomContextMenu } from './components/common/CustomContextMenu';
+import { ContextMenuProvider } from './context/ContextMenuContext';
 import { AppUpdateState, checkForAppUpdates } from './lib/updater';
 import { checkDueBillsAndNotify } from './lib/notifications';
+
 
 const MainContent: React.FC = () => {
   const { activeView, recurring } = useFinance();
@@ -78,51 +81,57 @@ export const App: React.FC = () => {
 
   return (
     <FinanceProvider>
-      <div className="min-h-screen flex flex-col bg-paper-100 dark:bg-paper-dark font-sans selection:bg-archival-ochre/20">
-        <Navigation />
-        <MainContent />
+      <ContextMenuProvider>
+        <div className="min-h-screen flex flex-col bg-paper-100 dark:bg-paper-dark font-sans selection:bg-archival-ochre/20">
+          <Navigation />
+          <MainContent />
 
-        {/* Global Quick Add Modal */}
-        <QuickAddModal />
+          {/* Global Quick Add Modal */}
+          <QuickAddModal />
 
-        {/* First-Run Onboarding Guide Modal */}
-        {isOnboardingOpen && (
-          <OnboardingGuideModal onClose={() => setIsOnboardingOpen(false)} />
-        )}
+          {/* First-Run Onboarding Guide Modal */}
+          {isOnboardingOpen && (
+            <OnboardingGuideModal onClose={() => setIsOnboardingOpen(false)} />
+          )}
 
-        {/* Artisanal Ledger Footer */}
-        <footer className="mt-auto py-6 border-t border-paper-300 dark:border-paper-dark-border bg-paper-50 dark:bg-paper-dark-card text-ink-500 text-xs mb-16 sm:mb-0">
-          <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center space-x-2">
-              <span className="font-serif font-bold text-ink-800 dark:text-ink-200">
-                SpendIt
-              </span>
-              <span>•</span>
-              <span className="font-mono text-[11px]">
-                Handwritten Financial Ledger & Diary
-              </span>
+          {/* Artisanal Desktop Custom Context Menu */}
+          <CustomContextMenu />
+
+          {/* Artisanal Ledger Footer */}
+          <footer className="mt-auto py-6 border-t border-paper-300 dark:border-paper-dark-border bg-paper-50 dark:bg-paper-dark-card text-ink-500 text-xs mb-16 sm:mb-0">
+            <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center space-x-2">
+                <span className="font-serif font-bold text-ink-800 dark:text-ink-200">
+                  SpendIt
+                </span>
+                <span>•</span>
+                <span className="font-mono text-[11px]">
+                  Handwritten Financial Ledger & Diary
+                </span>
+              </div>
+          
+              {/* Keyboard Shortcut Cheatsheet */}
+              <div className="hidden sm:flex flex-wrap items-center gap-2 text-[10px] font-mono">
+                <span className="px-1.5 py-0.5 rounded bg-paper-200 dark:bg-paper-dark border border-paper-300 dark:border-paper-dark-border">
+                  <kbd className="font-bold">N</kbd> Log Entry
+                </span>
+                <span className="px-1.5 py-0.5 rounded bg-paper-200 dark:bg-paper-dark border border-paper-300 dark:border-paper-dark-border">
+                  <kbd className="font-bold">P</kbd> Privacy Mask
+                </span>
+                <span className="px-1.5 py-0.5 rounded bg-paper-200 dark:bg-paper-dark border border-paper-300 dark:border-paper-dark-border">
+                  <kbd className="font-bold">T</kbd> Jump to Today
+                </span>
+                <span className="px-1.5 py-0.5 rounded bg-paper-200 dark:bg-paper-dark border border-paper-300 dark:border-paper-dark-border">
+                  <kbd className="font-bold">← / →</kbd> Flip Pages
+                </span>
+              </div>
             </div>
-        
-            {/* Keyboard Shortcut Cheatsheet */}
-            <div className="hidden sm:flex flex-wrap items-center gap-2 text-[10px] font-mono">
-              <span className="px-1.5 py-0.5 rounded bg-paper-200 dark:bg-paper-dark border border-paper-300 dark:border-paper-dark-border">
-                <kbd className="font-bold">N</kbd> Log Entry
-              </span>
-              <span className="px-1.5 py-0.5 rounded bg-paper-200 dark:bg-paper-dark border border-paper-300 dark:border-paper-dark-border">
-                <kbd className="font-bold">P</kbd> Privacy Mask
-              </span>
-              <span className="px-1.5 py-0.5 rounded bg-paper-200 dark:bg-paper-dark border border-paper-300 dark:border-paper-dark-border">
-                <kbd className="font-bold">T</kbd> Jump to Today
-              </span>
-              <span className="px-1.5 py-0.5 rounded bg-paper-200 dark:bg-paper-dark border border-paper-300 dark:border-paper-dark-border">
-                <kbd className="font-bold">← / →</kbd> Flip Pages
-              </span>
-            </div>
-          </div>
-        </footer>
-      </div>
+          </footer>
+        </div>
+      </ContextMenuProvider>
     </FinanceProvider>
   );
 };
+
 
 export default App;

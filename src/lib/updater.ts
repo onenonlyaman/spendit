@@ -18,8 +18,9 @@ export interface AppUpdateState {
   error?: string;
 }
 
-export const CURRENT_APP_VERSION = '1.0.1';
-export const GITHUB_RELEASES_URL = 'https://github.com/spendit/spendit/releases';
+export const CURRENT_APP_VERSION = '1.0.2';
+export const GITHUB_RELEASES_URL = 'https://github.com/onenonlyaman/spendit/releases';
+
 
 /**
  * Checks for updates via GitHub Releases using Tauri v2 updater.
