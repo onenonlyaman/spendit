@@ -11,6 +11,9 @@ jobs:
     permissions:
       contents: write
     runs-on: windows-latest
+    env:
+      RUSTC_WRAPPER: "sccache"
+      SCCACHE_GHA_ENABLED: "true"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,10 +29,8 @@ jobs:
         with:
           targets: x86_64-pc-windows-msvc
 
-      - name: Rust Cache
-        uses: swatinem/rust-cache@v2
-        with:
-          workspaces: './src-tauri -> target'
+      - name: Run sccache-action
+        uses: mozilla-actions/sccache-action@v0.0.8
 
       - name: Install Frontend Dependencies
         run: npm ci
@@ -61,6 +62,9 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-latest
+    env:
+      RUSTC_WRAPPER: "sccache"
+      SCCACHE_GHA_ENABLED: "true"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -89,10 +93,8 @@ jobs:
         with:
           targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android, i686-linux-android
 
-      - name: Rust Cache
-        uses: swatinem/rust-cache@v2
-        with:
-          workspaces: './src-tauri -> target'
+      - name: Run sccache-action
+        uses: mozilla-actions/sccache-action@v0.0.8
 
       - name: Install Frontend Dependencies
         run: npm ci

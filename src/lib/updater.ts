@@ -19,8 +19,9 @@ export interface AppUpdateState {
   error?: string;
 }
 
-export const CURRENT_APP_VERSION = '1.0.6';
+export const CURRENT_APP_VERSION = '1.0.7';
 export const GITHUB_RELEASES_URL = 'https://github.com/onenonlyaman/spendit/releases';
+
 
 
 export const GITHUB_API_LATEST_URL = 'https://api.github.com/repos/onenonlyaman/spendit/releases/latest';

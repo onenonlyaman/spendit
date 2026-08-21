@@ -1,27 +1,16 @@
 [package]
 name = "SpendIt"
-version = "1.0.6"
+version = "1.0.7"
 description = "SpendIt — Personal Financial Diary"
-
-
-
-
-
-
-
 authors = ["you"]
 license = ""
 repository = ""
 edition = "2021"
 rust-version = "1.77.2"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [lib]
 name = "app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
-
-
 
 [build-dependencies]
 tauri-build = { version = "2.6.3", features = [] }
@@ -38,4 +27,15 @@ tauri-plugin-dialog = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-notification = "2"
 
+# Optimize compilation speed for 3rd-party dependencies
+[profile.dev.package."*"]
+opt-level = 2
+debug = false
 
+# Production release: strip symbols to slash linking time & binary weight
+[profile.release]
+opt-level = 3
+debug = false
+strip = true
+lto = "thin"
+codegen-units = 1
