@@ -3,7 +3,31 @@ import {
   requestPermission,
   sendNotification,
 } from '@tauri-apps/plugin-notification';
-import { RecurringItem } from '../types';
+import { RecurringItem, CustomReminder } from '../types';
+
+export const DEFAULT_REMINDERS: CustomReminder[] = [
+  {
+    id: 'default_daily_reflection',
+    title: '📖 Evening Financial Folio Check',
+    body: 'Take a moment to record today\'s expenses, review your balance, and seal your daily note.',
+    time: '20:00',
+    frequency: 'daily',
+    action: 'log_day',
+    enabled: true,
+    createdAt: Date.now(),
+  },
+  {
+    id: 'default_weekly_review',
+    title: '📊 Weekly Financial Review',
+    body: 'Review your money jars, category budgets, and overall financial pace.',
+    time: '18:00',
+    frequency: 'weekly',
+    dayOfWeek: 0, // Sunday
+    action: 'review_jars',
+    enabled: false,
+    createdAt: Date.now() + 1,
+  },
+];
 
 /**
  * Ensures notification permissions are granted on Windows desktop.
@@ -40,6 +64,71 @@ export async function sendNativeNotification(title: string, body: string): Promi
 }
 
 /**
+ * Checks custom user reminders and triggers notifications when schedule matches.
+ * Returns the list of reminder IDs that fired.
+ */
+export async function checkCustomRemindersAndNotify(
+  reminders: CustomReminder[]
+): Promise<string[]> {
+  const now = new Date();
+  const currentHours = String(now.getHours()).padStart(2, '0');
+  const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+  const currentHHmm = `${currentHours}:${currentMinutes}`;
+  const currentDayOfWeek = now.getDay(); // 0 (Sun) - 6 (Sat)
+  const currentDayOfMonth = now.getDate();
+  const todayDateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+
+  const firedReminderIds: string[] = [];
+
+  for (const reminder of reminders) {
+    if (!reminder.enabled) continue;
+
+    // Check if already fired today
+    if (reminder.lastTriggeredDate === todayDateStr) continue;
+
+    // Match Time ("HH:mm")
+    if (reminder.time !== currentHHmm) continue;
+
+    // Match Frequency
+    let shouldFire = false;
+    switch (reminder.frequency) {
+      case 'daily':
+        shouldFire = true;
+        break;
+      case 'weekdays':
+        shouldFire = currentDayOfWeek >= 1 && currentDayOfWeek <= 5;
+        break;
+      case 'weekends':
+        shouldFire = currentDayOfWeek === 0 || currentDayOfWeek === 6;
+        break;
+      case 'weekly':
+        shouldFire = reminder.dayOfWeek !== undefined && reminder.dayOfWeek === currentDayOfWeek;
+        break;
+      case 'monthly':
+        shouldFire = reminder.dayOfMonth !== undefined && reminder.dayOfMonth === currentDayOfMonth;
+        break;
+    }
+
+    if (shouldFire) {
+      await sendNativeNotification(reminder.title, reminder.body);
+      firedReminderIds.push(reminder.id);
+    }
+  }
+
+  return firedReminderIds;
+}
+
+/**
+ * Sends an immediate test notification.
+ */
+export async function sendTestNotification(): Promise<void> {
+  await sendNativeNotification(
+    '🔔 SpendIt Notification Test',
+    'Custom reminders and alerts are properly active on your system!'
+  );
+}
+
+/**
  * Checks recurring bills and dispatches alerts for bills due today.
  */
 export async function checkDueBillsAndNotify(recurring: RecurringItem[]): Promise<void> {
@@ -70,3 +159,4 @@ export async function sendDiaryEveningPrompt(): Promise<void> {
     'Take a peaceful moment to review today\'s spending and record your evening reflection.'
   );
 }
+

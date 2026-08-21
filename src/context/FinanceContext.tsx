@@ -2,7 +2,8 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import { api } from '../lib/api';
 import { calculateAccountBalances } from '../lib/accounting';
 import { getRelativeDayOffset, getTodayString } from '../lib/utils';
-import { Account, Category, DailyNote, MoneyGoal, RecurringItem, Transaction } from '../types';
+import { Account, Category, CustomReminder, DailyNote, MoneyGoal, RecurringItem, Transaction } from '../types';
+import { DEFAULT_REMINDERS } from '../lib/notifications';
 
 export type ActiveView = 'diary' | 'accounts' | 'chapters' | 'goals' | 'simulator' | 'search' | 'settings';
 
@@ -24,6 +25,7 @@ interface FinanceContextType {
   goals: MoneyGoal[];
   dailyNotes: Record<string, DailyNote>;
   recurring: RecurringItem[];
+  reminders: CustomReminder[];
 
   // Navigation & UI
   currentDiaryDate: string;
@@ -78,6 +80,13 @@ interface FinanceContextType {
   saveDailyNote: (date: string, updates: Partial<DailyNote>) => Promise<void>;
   toggleSealDay: (date: string) => Promise<void>;
 
+  // Custom Reminders Operations
+  addReminder: (reminder: Omit<CustomReminder, 'id' | 'createdAt'>) => Promise<CustomReminder>;
+  updateReminder: (id: string, updates: Partial<CustomReminder>) => Promise<void>;
+  deleteReminder: (id: string) => Promise<void>;
+  toggleReminder: (id: string) => Promise<void>;
+  markReminderFired: (id: string) => Promise<void>;
+
   // Recurring Operations
   addRecurring: (item: Omit<RecurringItem, 'id'>) => Promise<void>;
   updateRecurring: (id: string, updates: Partial<RecurringItem>) => Promise<void>;
@@ -98,6 +107,17 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [goals, setGoals] = useState<MoneyGoal[]>([]);
   const [dailyNotes, setDailyNotes] = useState<Record<string, DailyNote>>({});
   const [recurring, setRecurring] = useState<RecurringItem[]>([]);
+  const [reminders, setReminders] = useState<CustomReminder[]>(() => {
+    try {
+      const saved = localStorage.getItem('spendit_custom_reminders');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.warn('Failed to parse reminders from storage', e);
+    }
+    return DEFAULT_REMINDERS;
+  });
 
   const [currentDiaryDate, setCurrentDiaryDate] = useState<string>(getTodayString());
   const [activeView, setActiveViewState] = useState<ActiveView>('diary');
@@ -380,9 +400,55 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setRecurring(prev => prev.filter(r => r.id !== id));
   };
 
+  // Custom Reminders Actions
+  const saveRemindersToStorage = (items: CustomReminder[]) => {
+    setReminders(items);
+    try {
+      localStorage.setItem('spendit_custom_reminders', JSON.stringify(items));
+    } catch (e) {
+      console.warn('Failed to save reminders to storage', e);
+    }
+  };
+
+  const addReminder = async (reminderData: Omit<CustomReminder, 'id' | 'createdAt'>): Promise<CustomReminder> => {
+    const newReminder: CustomReminder = {
+      ...reminderData,
+      id: `rem_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      createdAt: Date.now(),
+    };
+    const updated = [newReminder, ...reminders];
+    saveRemindersToStorage(updated);
+    return newReminder;
+  };
+
+  const updateReminder = async (id: string, updates: Partial<CustomReminder>) => {
+    const updated = reminders.map(r => (r.id === id ? { ...r, ...updates } : r));
+    saveRemindersToStorage(updated);
+  };
+
+  const deleteReminder = async (id: string) => {
+    const updated = reminders.filter(r => r.id !== id);
+    saveRemindersToStorage(updated);
+  };
+
+  const toggleReminder = async (id: string) => {
+    const updated = reminders.map(r => (r.id === id ? { ...r, enabled: !r.enabled } : r));
+    saveRemindersToStorage(updated);
+  };
+
+  const markReminderFired = async (id: string) => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const updated = reminders.map(r => (r.id === id ? { ...r, lastTriggeredDate: todayStr } : r));
+    saveRemindersToStorage(updated);
+  };
+
   // Backup & Reset
   const exportBackup = async () => {
-    return await api.exportBackup();
+    const backupData = await api.exportBackup();
+    return {
+      ...backupData,
+      reminders,
+    };
   };
 
   const importBackup = async (jsonStr: string): Promise<boolean> => {
@@ -390,6 +456,9 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const data = JSON.parse(jsonStr);
       const ok = await api.importBackup(data);
       if (ok) {
+        if (Array.isArray(data.reminders)) {
+          saveRemindersToStorage(data.reminders);
+        }
         await refreshAllData();
         return true;
       }
@@ -407,6 +476,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setGoals([]);
     setDailyNotes({});
     setRecurring([]);
+    saveRemindersToStorage(DEFAULT_REMINDERS);
   };
 
   return (
@@ -418,6 +488,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         goals,
         dailyNotes,
         recurring,
+        reminders,
         currentDiaryDate,
         activeView,
         navDirection,
@@ -460,6 +531,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         addRecurring,
         updateRecurring,
         deleteRecurring,
+        addReminder,
+        updateReminder,
+        deleteReminder,
+        toggleReminder,
+        markReminderFired,
         exportBackup,
         importBackup,
         resetAllData,

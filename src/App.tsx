@@ -15,7 +15,7 @@ import { UpdateModal } from './components/common/UpdateModal';
 import { CustomContextMenu } from './components/common/CustomContextMenu';
 import { ContextMenuProvider } from './context/ContextMenuContext';
 import { AppUpdateState, checkForAppUpdates } from './lib/updater';
-import { checkDueBillsAndNotify } from './lib/notifications';
+import { checkDueBillsAndNotify, checkCustomRemindersAndNotify } from './lib/notifications';
 
 const pageVariants = {
   enter: (direction: number) => ({
@@ -33,10 +33,10 @@ const pageVariants = {
 };
 
 const MainContent: React.FC = () => {
-  const { activeView, navDirection, recurring, performanceMode } = useFinance();
+  const { activeView, navDirection, recurring, reminders, markReminderFired, performanceMode } = useFinance();
   const [startupUpdate, setStartupUpdate] = useState<AppUpdateState | null>(null);
 
-  // Background startup checks
+  // Background startup checks & recurring bills
   useEffect(() => {
     // 1. Check for recurring bill alerts on startup
     const billAlertsEnabled = localStorage.getItem('spendit_bill_alerts_enabled') !== 'false';
@@ -44,6 +44,23 @@ const MainContent: React.FC = () => {
       checkDueBillsAndNotify(recurring);
     }
   }, [recurring]);
+
+  // Periodic check for Custom Reminders (every 30s)
+  useEffect(() => {
+    const checkReminders = async () => {
+      const notificationsEnabled = localStorage.getItem('spendit_notifications_enabled') !== 'false';
+      if (!notificationsEnabled || reminders.length === 0) return;
+
+      const firedIds = await checkCustomRemindersAndNotify(reminders);
+      for (const id of firedIds) {
+        await markReminderFired(id);
+      }
+    };
+
+    checkReminders();
+    const interval = setInterval(checkReminders, 30000);
+    return () => clearInterval(interval);
+  }, [reminders, markReminderFired]);
 
   useEffect(() => {
     // 2. Check for OTA updates on startup

@@ -85,3 +85,21 @@ export interface ParsedNLPInput {
   time?: string; // "HH:mm" (e.g. "07:30", "12:23", "20:45")
   timeSlot?: 'morning' | 'noon' | 'evening' | 'night' | 'late_night';
 }
+
+export type ReminderFrequency = 'daily' | 'weekdays' | 'weekends' | 'weekly' | 'monthly';
+export type ReminderAction = 'log_day' | 'review_jars' | 'check_budget' | 'reconcile' | 'custom';
+
+export interface CustomReminder {
+  id: string;
+  title: string;
+  body: string;
+  time: string; // "HH:mm" e.g. "20:00"
+  frequency: ReminderFrequency;
+  dayOfWeek?: number; // 0-6 (Sun-Sat) for weekly
+  dayOfMonth?: number; // 1-31 for monthly
+  action: ReminderAction;
+  enabled: boolean;
+  lastTriggeredDate?: string; // YYYY-MM-DD to avoid duplicate notifications on same day
+  createdAt: number;
+}
+
