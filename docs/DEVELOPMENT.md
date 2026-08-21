@@ -1,6 +1,6 @@
 # 🛠️ SpendIt Developer Manual & Architecture Guide
 
-Welcome to the **SpendIt** technical developer documentation. This guide details the software architecture, runtime lifecycle, local SQLite database schema, accounting engine math, natural language parsing pipeline, and instructions for building desktop and mobile binaries.
+Welcome to the **SpendIt** technical developer documentation. This guide details the software architecture, runtime lifecycle, local SQLite database schema, accounting engine math, liquid glass UI subsystem, natural language parsing pipeline, and instructions for building desktop and mobile binaries.
 
 ---
 
@@ -12,12 +12,13 @@ Welcome to the **SpendIt** technical developer documentation. This guide details
 4. [Development & Build Workflows](#4-development--build-workflows)
 5. [Database Architecture & SQLite Schema](#5-database-architecture--sqlite-schema)
 6. [Core Technical Subsystems](#6-core-technical-subsystems)
-   - [A. Derived Double-Entry Accounting Engine](#a-derived-double-entry-accounting-engine)
-   - [B. Natural Language Parsing Pipeline](#b-natural-language-parsing-pipeline)
-   - [C. Web Audio Oscillator Synthesis Engine](#c-web-audio-oscillator-synthesis-engine)
-   - [D. Isolated Archival Print Vector Engine](#d-isolated-archival-print-vector-engine)
-   - [E. Native Notifications & GitHub Releases Updater](#e-native-notifications--github-releases-updater)
-7. [Upcoming Mobile Architecture (Tauri v2 Mobile)](#7-upcoming-mobile-architecture-tauri-v2-mobile)
+   - [A. Liquid Glass & Motion Architecture](#a-liquid-glass--motion-architecture)
+   - [B. Derived Double-Entry Accounting Engine](#b-derived-double-entry-accounting-engine)
+   - [C. Natural Language Parsing Pipeline](#c-natural-language-parsing-pipeline)
+   - [D. Web Audio Oscillator Synthesis Engine](#d-web-audio-oscillator-synthesis-engine)
+   - [E. Isolated Archival Print Vector Engine](#e-isolated-archival-print-vector-engine)
+   - [F. Native Notifications & GitHub Releases Updater](#f-native-notifications--github-releases-updater)
+7. [Multi-Platform & Mobile Architecture (Tauri v2 Desktop & Android)](#7-multi-platform--mobile-architecture-tauri-v2-desktop--android)
 8. [Design System & Coding Guidelines](#8-design-system--coding-guidelines)
 9. [Contributing & Pull Request Workflow](#9-contributing--pull-request-workflow)
 
@@ -25,13 +26,15 @@ Welcome to the **SpendIt** technical developer documentation. This guide details
 
 ## 1. Architecture Overview
 
-SpendIt is built as a **local-first desktop and web application** powered by **Tauri v2**, **React 18**, **TypeScript**, and **SQLite**.
+SpendIt is built as a **local-first desktop and mobile application** powered by **Tauri v2**, **React 18**, **TypeScript**, **Framer Motion**, and **SQLite**.
 
 ```mermaid
 graph TD
-    subgraph UI Layer [React 18 + Vite + TailwindCSS]
-        App[App Shell & Navigation]
+    subgraph UI Layer [React 18 + Vite + TailwindCSS + Motion]
+        App[App Shell & Ambient Glass Mesh]
+        Nav[Floating Glass Navigation & Dock]
         Context[FinanceContext Provider]
+        ContextMenu[Custom Artisanal Context Menu]
         Diary[Today's Diary Folio]
         NLP[Quick Add NLP Modal]
         Chapters[Monthly Chapters & Heatmap]
@@ -59,7 +62,7 @@ graph TD
     subgraph Local Storage [Device Filesystem]
         SQLite[(spendit.db SQLite File)]
         Session[(sessionStorage Drafts)]
-        LocalConfig[(localStorage Haptics/Theme)]
+        LocalConfig[(localStorage Haptics/Theme/PerfMode)]
     end
 
     App --> Context
@@ -72,7 +75,8 @@ graph TD
 ### Key Architectural Tenets:
 1. **Local-First & Zero Telemetry**: Every transaction, note, and goal is stored locally on the user's hard drive in `spendit.db`. No network requests are made except for checking optional GitHub Releases updates.
 2. **Derived Accounting Truth**: Balances are not stored as mutable counters. They are computed dynamically from `initial_balance` + verifiable transaction deltas.
-3. **Zero Audio Assets**: Haptics and sound effects are synthesized on-the-fly using the Web Audio API oscillator nodes, keeping the binary ultra-lightweight and offline-resilient.
+3. **Liquid Glass Materiality**: Frosted translucent surfaces with specular highlights and ambient atmospheric lighting meshes.
+4. **Zero Audio Assets**: Haptics and sound effects are synthesized on-the-fly using the Web Audio API oscillator nodes, keeping the binary ultra-lightweight and offline-resilient.
 
 ---
 
@@ -81,22 +85,24 @@ graph TD
 ```
 spendit/
 ├── index.html                  # Main web entry point with Google Fonts (Newsreader, Space Mono, Caveat)
-├── package.json                # Project dependencies and lifecycle scripts
+├── package.json                # Project dependencies (v1.1.0, motion, tauri plugins)
 ├── tsconfig.json               # Strict TypeScript configuration
 ├── vite.config.ts              # Vite bundler configuration (port 3000)
-├── tailwind.config.js          # Custom theme tokens (parchment, mineral inks, ledger shadows)
+├── tailwind.config.js          # Custom theme tokens (Apple colors, parchment, mineral inks)
 ├── DESIGN.md                   # Formal Design System specification
 ├── PRODUCT.md                  # Product requirement specification & philosophy
+├── assets/                     # Official brand assets (logo.png)
 ├── docs/                       # Developer & architecture documentation
 │   └── DEVELOPMENT.md          # This file
 │
 ├── src/                        # Frontend Application Source (React 18 + TS)
 │   ├── main.tsx                # React DOM root mounting
-│   ├── App.tsx                 # Top-level view routing & modal coordinators
+│   ├── App.tsx                 # Top-level view routing, AmbientGlassMesh & modal coordinators
 │   ├── index.css               # Global typography, ledger ruling lines, scrollbar styling
 │   │
 │   ├── context/
-│   │   └── FinanceContext.tsx   # Global finance state provider, shortcuts, and DB synchronization
+│   │   ├── FinanceContext.tsx   # Global finance state provider, shortcuts, and DB synchronization
+│   │   └── ContextMenuContext.tsx # Global custom right-click context menu state
 │   │
 │   ├── types/
 │   │   └── index.ts            # Core TypeScript models (Transaction, Account, Category, DailyNote, Goal)
@@ -113,19 +119,21 @@ spendit/
 │   │   └── utils.ts            # Formatting (₹ INR, dates, day-of-year, CSV export)
 │   │
 │   └── components/             # React UI Folios & Components
-│       ├── common/             # Navigation, QuickAddModal, ReceiptModal, Onboarding, UpdateModal
+│       ├── ui/                 # Reusable UI primitives (GlassSurface, AppleSwitch, GooeyInput)
+│       ├── common/             # Navigation, QuickAddModal, CustomContextMenu, ReceiptModal, Onboarding, UpdateModal
 │       ├── diary/              # DiaryView, TransactionRow, DailyNotes, EndOfDaySummary
 │       ├── accounts/           # AccountsView, TransferModal
 │       ├── chapters/           # ChaptersView, MoneyHeatmap
 │       ├── goals/              # GoalsView (Apothecary Money Jars with confetti)
 │       ├── simulator/          # SimulatorView (What-If forecasting sliders)
 │       ├── search/             # SearchView (Multi-criteria filter & receipt gallery)
-│       └── settings/           # SettingsView (Data export/import, haptics, theme, update checker)
+│       └── settings/           # SettingsView (Data export/import, haptics, theme, performance mode)
 │
-└── src-tauri/                  # Desktop Runtime (Tauri v2 + Rust)
+└── src-tauri/                  # Desktop & Mobile Runtime (Tauri v2 + Rust)
     ├── Cargo.toml              # Rust crate dependencies (tauri-plugin-sql, updater, notifications)
     ├── tauri.conf.json         # Window definitions, permissions, update endpoints, bundle icons
     ├── build.rs                # Tauri build orchestrator
+    ├── gen/android/            # Generated Android Studio project
     └── src/
         ├── lib.rs              # Tauri plugin registration and mobile/desktop entry
         └── main.rs             # Application runner
@@ -138,17 +146,21 @@ spendit/
 To develop and build SpendIt locally, ensure your system has the following installed:
 
 ### 1. Node.js
-- **Node.js**: `v18.0.0` or later (LTS recommended)
+- **Node.js**: `v18.0.0` or later (Node 22 LTS recommended)
 - **npm**: `v9.0.0` or later
 
-### 2. Rust Toolchain (for Tauri v2 Desktop)
+### 2. Rust Toolchain (for Tauri v2 Desktop & Mobile)
 - **Rust**: `1.77.2` or later. Install via [rustup.rs](https://rustup.rs/):
   ```bash
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
   ```
 
-### 3. OS-Specific Build Dependencies
-- **Windows**: [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) or Visual Studio with "Desktop development with C++" workload, plus the WebView2 Runtime (pre-installed on Windows 10/11).
+### 3. Android SDK (for Mobile Builds)
+- **Android Studio** with Android SDK Platform 34+, Android SDK Build-Tools, and NDK.
+- Target Rust toolchains: `aarch64-linux-android`, `armv7-linux-androideabi`, `i686-linux-android`, `x86_64-linux-android`.
+
+### 4. OS-Specific Desktop Build Dependencies
+- **Windows**: [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) with C++ workload and WebView2 Runtime.
 - **macOS**: Xcode Command Line Tools: `xcode-select --install`.
 - **Linux (Ubuntu/Debian)**:
   ```bash
@@ -181,7 +193,11 @@ Compiles optimized TypeScript, bundles assets with Vite, and invokes `cargo taur
 ```bash
 npm run desktop:build
 ```
-*Compiled binaries will be generated under `src-tauri/target/release/bundle/`.*
+
+### 5. Build Android APK
+```bash
+npm run tauri android build -- --apk
+```
 
 ---
 
@@ -283,8 +299,17 @@ CREATE TABLE IF NOT EXISTS recurring_items (
 
 ## 6. Core Technical Subsystems
 
-### A. Derived Double-Entry Accounting Engine (`src/lib/accounting.ts`)
-SpendIt derives all real-time balances mathematically rather than maintaining unstable counter states:
+### A. Liquid Glass & Motion Architecture
+SpendIt v1.1 incorporates modern Apple-inspired glassmorphism and spring physics:
+- **`GlassSurface` (`src/components/ui/GlassSurface.tsx`)**: Translucent SVG displacement and backdrop blur component simulating optical refraction, surface highlights, and dispersion.
+- **`AmbientGlassMesh` (`src/App.tsx`)**: Atmospheric background lighting mesh that dynamically projects luminous color orbs behind the glass surfaces.
+- **Directional Page Variants (`motion/react`)**: Direction-aware horizontal sliding animations when flipping through ledger leaves.
+- **Adaptive Performance Mode**: Disables ambient blur filters and heavy spring calculations when running on battery or lower-powered hardware.
+
+---
+
+### B. Derived Double-Entry Accounting Engine (`src/lib/accounting.ts`)
+SpendIt derives all real-time balances mathematically:
 
 ```typescript
 export function calculateAccountBalances(
@@ -320,20 +345,18 @@ $$ \text{Safe Daily Allowance} = \frac{\text{Discretionary Budget} - \text{Spent
 
 ---
 
-### B. Natural Language Parsing Pipeline (`src/lib/nlpParser.ts`)
-The NLP parser extracts structured financial parameters from raw unstructured text input in real-time:
-1. **Bracketed Marginalia**: `[split with rohit]` or `(for client meeting)` → extracted into `notes`.
+### C. Natural Language Parsing Pipeline (`src/lib/nlpParser.ts`)
+The NLP parser extracts structured parameters from raw unstructured text:
+1. **Bracketed Marginalia**: `[split with rohit]` → extracted into `notes`.
 2. **Hashtags**: `#chai #kirana #travel` → extracted into `tags[]`.
-3. **Exact Time & Period Classification**:
-   - `12:23 am`, `8:30pm`, `@14:30` → converts to `HH:mm` format.
-   - Named time tokens (`morning`, `noon`, `evening`, `night`) → classifies into standard time slots.
-4. **Amount Tokenization**: Regex matches `₹150`, `15k`, `450.50`, etc.
-5. **Account & Category Resolution**: Fuzzy matching against user accounts and categories with Indian banking vernacular (`upi`, `gpay`, `paytm`, `hdfc`, `sbi`, `cash`).
+3. **Exact Time & Period Classification**: `12:23 am`, `8:30pm`, `@14:30`, or period keywords (`morning`, `noon`, `evening`, `night`).
+4. **Amount Tokenization**: Matches currency amounts and Indian numbering (`15k`, `450.50`).
+5. **Account & Category Resolution**: Fuzzy matching against user accounts and categories (`upi`, `gpay`, `hdfc`, `cash`).
 
 ---
 
-### C. Web Audio Oscillator Synthesis Engine (`src/lib/audioHaptics.ts`)
-To maintain zero dependencies and zero network lag, sound effects are generated via the browser's native `AudioContext`:
+### D. Web Audio Oscillator Synthesis Engine (`src/lib/audioHaptics.ts`)
+Sound effects are synthesized dynamically via the native browser `AudioContext`:
 
 | Sound | Oscillator Configuration | Decay Envelope |
 | :--- | :--- | :--- |
@@ -344,7 +367,7 @@ To maintain zero dependencies and zero network lag, sound effects are generated 
 
 ---
 
-### D. Isolated Archival Print Vector Engine (`src/lib/pdfPrinter.ts`)
+### E. Isolated Archival Print Vector Engine (`src/lib/pdfPrinter.ts`)
 Generates standalone A4 / Letter printable HTML documents:
 - Eliminates app frame, navigation bars, and inputs.
 - Applies archival serif fonts and high-contrast ledger lines (`#191C1A` on `#FFFFFF`).
@@ -352,39 +375,31 @@ Generates standalone A4 / Letter printable HTML documents:
 
 ---
 
-### E. Native Notifications & GitHub Releases Updater (`src/lib/updater.ts` & `notifications.ts`)
-- **Native Notifications**: Communicates with the OS notification daemon (Windows Action Center, macOS Notification Center) via `@tauri-apps/plugin-notification`.
+### F. Native Notifications & GitHub Releases Updater (`src/lib/updater.ts` & `notifications.ts`)
+- **Native Notifications**: Communicates with OS notification daemons via `@tauri-apps/plugin-notification`.
 - **Auto-Updater**: Compares `CURRENT_APP_VERSION` against GitHub Releases JSON using `semver`.
   - Minor/patch bumps → downloaded and installed in-app as an OTA update.
-  - Major upgrades (e.g. `v1.x` → `v2.x`) → opens the GitHub Release download page in the default browser.
+  - Major upgrades → opens the GitHub Release download page.
 
 ---
 
-## 7. Upcoming Mobile Architecture (Tauri v2 Mobile)
+## 7. Multi-Platform & Mobile Architecture (Tauri v2 Desktop & Android)
 
-Tauri v2 provides first-class support for compiling to **Android (APK / AAB)** and **iOS (IPA)** from the same codebase:
+SpendIt v1.1 supports cross-compilation across **Desktop (Windows, macOS, Linux)** and **Mobile (Android APK)**:
 
-### Mobile Porting Blueprint:
-1. **Responsive Viewport**: The UI is styled with mobile-first Tailwind utilities (`max-w-4xl`, responsive bottom navigation bar, touch-friendly `44px` minimum hit targets).
-2. **Hardware Haptic Feedback**: Bridge `@tauri-apps/plugin-haptics` on mobile to complement the Web Audio sound effects.
-3. **Camera Receipt Scanning**: Integrate native camera capture for attaching receipts directly to journal entries.
-4. **Android / iOS Initialization**:
-   ```bash
-   # Initialize Android project
-   npm run tauri android init
-
-   # Initialize iOS project (macOS required)
-   npm run tauri ios init
-   ```
+### Mobile Porting Features:
+1. **Floating Glass Dock**: Touch-friendly bottom navigation bar with Apple-style fluid tabs and quick-add trigger.
+2. **Android Keystore Signing**: CI/CD automated signing with environment-injected release keystores.
+3. **Touch Ergonomics**: Minimum 44px hit targets and active touch press scaling across all cards and buttons.
 
 ---
 
 ## 8. Design System & Coding Guidelines
 
-Refer to [`DESIGN.md`](../DESIGN.md) for full design system details. When authoring code or creating new folios, adhere to these principles:
+Refer to [`DESIGN.md`](../DESIGN.md) for full design system details. When authoring code, adhere to these principles:
 
 1. **No Software Jargon in UI Copy**: Never expose terms like *"SQL"*, *"Database"*, *"CRUD"*, *"REST"*, or *"Postgres"* to the user. Use tactile terms: *"Ledger Folio"*, *"Journal Entry"*, *"Archival Register"*, *"Sinking Jar"*, *"Seal Page"*.
-2. **Respect Physical Materiality**: Use warm paper backgrounds (`bg-paper-50`, `bg-paper-100`), monospaced figures for currency tables (`font-mono`), and serif headlines (`font-serif`).
+2. **Respect Physical Materiality & Glass Translucency**: Pair warm ivory surfaces with subtle frosted glass containers.
 3. **Preserve Accounting Invariants**: Never mutate account balances directly. Always create corresponding ledger transactions.
 
 ---
