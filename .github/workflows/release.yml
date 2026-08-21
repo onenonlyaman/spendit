@@ -112,7 +112,14 @@ jobs:
         run: |
           mkdir -p output-apks
           find src-tauri/gen/android/app/build/outputs/apk -type f -name "*.apk" -exec cp {} output-apks/ \;
-          ls -la output-apks/
+          cd output-apks
+          for f in *.apk; do
+            if [ -f "$f" ]; then
+              clean_name=$(echo "$f" | sed 's/app-//g' | sed 's/-unsigned//g')
+              mv "$f" "SpendIt_${{ github.ref_name }}_${clean_name}" || true
+            fi
+          done
+          ls -la ./
 
       - name: Attach APKs to GitHub Release
         uses: softprops/action-gh-release@v2
@@ -121,3 +128,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: output-apks/*.apk
+
