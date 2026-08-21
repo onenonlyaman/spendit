@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Calendar,
   Check,
@@ -10,15 +11,18 @@ import {
   Eye,
   EyeOff,
   Moon,
-  PenTool,
+  Plus,
   RotateCcw,
   Scissors,
   Settings,
   Sun,
+  Zap,
 } from 'lucide-react';
 import { useContextMenu } from '../../context/ContextMenuContext';
 import { useFinance } from '../../context/FinanceContext';
 import { sounds } from '../../lib/audioHaptics';
+import { GlassSurface } from '../ui/GlassSurface';
+import { AppleSwitch } from '../ui/apple-switch';
 
 export const CustomContextMenu: React.FC = () => {
   const { isOpen, position, targetMeta, closeContextMenu } = useContextMenu();
@@ -31,6 +35,8 @@ export const CustomContextMenu: React.FC = () => {
     goToNextDay,
     theme,
     toggleTheme,
+    performanceMode,
+    togglePerformanceMode,
     setActiveView,
     exportBackup,
     refreshAllData,
@@ -43,7 +49,6 @@ export const CustomContextMenu: React.FC = () => {
     closeContextMenu();
     action();
   };
-
 
   // Clipboard Helpers
   const handleCopy = async () => {
@@ -101,196 +106,238 @@ export const CustomContextMenu: React.FC = () => {
     if (targetMeta.isInput && targetMeta.targetElement) {
       const input = targetMeta.targetElement as HTMLInputElement | HTMLTextAreaElement;
       input.select();
-    } else {
-      window.getSelection()?.selectAllChildren(document.body);
     }
     closeContextMenu();
   };
 
   const handleExportJSON = async () => {
-    try {
-      const backupData = await exportBackup();
-      const jsonStr = typeof backupData === 'string' ? backupData : JSON.stringify(backupData, null, 2);
-      const blob = new Blob([jsonStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `spendit-journal-backup-${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Export failed:', err);
-    }
+    const backupData = await exportBackup();
+    const jsonStr = typeof backupData === 'string' ? backupData : JSON.stringify(backupData, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `spendit-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  const showTextEditing = targetMeta.isEditable || targetMeta.hasSelection;
+  const showTextEditing = targetMeta.isInput || (targetMeta.selectedText && targetMeta.selectedText.length > 0);
 
   return (
-    <div
-      id="custom-desktop-context-menu"
-      style={{
-        top: `${position.y}px`,
-        left: `${position.x}px`,
-      }}
-      className="fixed z-[9999] min-w-[230px] bg-paper-50/95 dark:bg-paper-dark-card/95 backdrop-blur-md border-2 border-archival-ochre/40 dark:border-archival-ochre/30 shadow-2xl rounded-xl p-1.5 text-xs font-sans text-ink-800 dark:text-ink-200 select-none animate-fadeIn ring-1 ring-ink-900/10"
-      onContextMenu={e => e.preventDefault()}
-    >
-      {/* 1. Contextual Text / Clipboard Editing */}
-      {showTextEditing && (
-        <div className="space-y-0.5 pb-1 mb-1 border-b border-paper-200 dark:border-paper-dark-border">
-          {targetMeta.isInput && (
-            <button
-              onClick={handleCut}
-              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-paper-200/80 dark:hover:bg-paper-dark transition-colors text-left"
-            >
-              <span className="flex items-center gap-2">
-                <Scissors className="w-3.5 h-3.5 text-ink-500" />
-                <span>Cut</span>
-              </span>
-              <span className="font-mono text-[10px] text-ink-400">Ctrl+X</span>
-            </button>
-          )}
-
-          <button
-            onClick={handleCopy}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-paper-200/80 dark:hover:bg-paper-dark transition-colors text-left"
-          >
-            <span className="flex items-center gap-2">
-              <Copy className="w-3.5 h-3.5 text-ink-500" />
-              <span>Copy</span>
-            </span>
-            <span className="font-mono text-[10px] text-ink-400">Ctrl+C</span>
-          </button>
-
-          {targetMeta.isInput && (
-            <button
-              onClick={handlePaste}
-              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-paper-200/80 dark:hover:bg-paper-dark transition-colors text-left"
-            >
-              <span className="flex items-center gap-2">
-                <Clipboard className="w-3.5 h-3.5 text-ink-500" />
-                <span>Paste</span>
-              </span>
-              <span className="font-mono text-[10px] text-ink-400">Ctrl+V</span>
-            </button>
-          )}
-
-          <button
-            onClick={handleSelectAll}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-paper-200/80 dark:hover:bg-paper-dark transition-colors text-left"
-          >
-            <span className="flex items-center gap-2">
-              <Check className="w-3.5 h-3.5 text-ink-500" />
-              <span>Select All</span>
-            </span>
-            <span className="font-mono text-[10px] text-ink-400">Ctrl+A</span>
-          </button>
-        </div>
-      )}
-
-      {/* 2. Global Physical Diary Navigation */}
-      <div className="space-y-0.5 pb-1 mb-1 border-b border-paper-200 dark:border-paper-dark-border">
-        <button
-          onClick={() => handleAction(() => setIsQuickAddOpen(true))}
-          className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-paper-200/80 dark:hover:bg-paper-dark text-archival-ochre-dark dark:text-archival-ochre font-semibold transition-colors text-left"
+    <AnimatePresence>
+      <motion.div
+        id="custom-desktop-context-menu"
+        initial={{ opacity: 0, scale: 0.95, y: -4 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.14, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          top: `${position.y}px`,
+          left: `${position.x}px`,
+        }}
+        className="fixed z-[9999] min-w-[220px] select-none shadow-apple-float"
+        onContextMenu={e => e.preventDefault()}
+      >
+        <GlassSurface
+          borderRadius={20}
+          blur={24}
+          backgroundOpacity={0.92}
+          saturation={1.9}
+          className="p-1.5"
         >
-          <span className="flex items-center gap-2">
-            <PenTool className="w-3.5 h-3.5 text-archival-ochre" />
-            <span>Log Entry</span>
-          </span>
-          <span className="font-mono text-[10px] px-1 py-0.2 rounded bg-archival-ochre/15">N</span>
-        </button>
+          <div className="w-full text-xs font-sans text-ink-800 dark:text-ink-200">
+            {/* 1. Contextual Text / Clipboard Editing */}
+            {showTextEditing && (
+              <div className="space-y-0.5 pb-1 mb-1 border-b border-black/[0.06] dark:border-white/[0.08]">
+                {targetMeta.isInput && (
+                  <button
+                    onClick={handleCut}
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Scissors className="w-3.5 h-3.5 text-ink-500 group-hover:text-white" />
+                      <span>Cut</span>
+                    </span>
+                    <span className="font-mono text-[10px] text-ink-400 group-hover:text-white">Ctrl+X</span>
+                  </button>
+                )}
 
-        <button
-          onClick={() => handleAction(togglePrivacyMode)}
-          className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-paper-200/80 dark:hover:bg-paper-dark transition-colors text-left"
-        >
-          <span className="flex items-center gap-2">
-            {privacyMode ? (
-              <Eye className="w-3.5 h-3.5 text-forest-600 dark:text-forest-400" />
-            ) : (
-              <EyeOff className="w-3.5 h-3.5 text-ink-500" />
+                <button
+                  onClick={handleCopy}
+                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group"
+                >
+                  <span className="flex items-center gap-2">
+                    <Copy className="w-3.5 h-3.5 text-ink-500 group-hover:text-white" />
+                    <span>Copy</span>
+                  </span>
+                  <span className="font-mono text-[10px] text-ink-400 group-hover:text-white">Ctrl+C</span>
+                </button>
+
+                {targetMeta.isInput && (
+                  <button
+                    onClick={handlePaste}
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Clipboard className="w-3.5 h-3.5 text-ink-500 group-hover:text-white" />
+                      <span>Paste</span>
+                    </span>
+                    <span className="font-mono text-[10px] text-ink-400 group-hover:text-white">Ctrl+V</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={handleSelectAll}
+                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group"
+                >
+                  <span className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-ink-500 group-hover:text-white" />
+                    <span>Select All</span>
+                  </span>
+                  <span className="font-mono text-[10px] text-ink-400 group-hover:text-white">Ctrl+A</span>
+                </button>
+              </div>
             )}
-            <span>{privacyMode ? 'Reveal Balances' : 'Privacy Mask'}</span>
-          </span>
-          <span className="font-mono text-[10px] text-ink-400">P</span>
-        </button>
 
-        <button
-          onClick={() => handleAction(goToToday)}
-          className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-paper-200/80 dark:hover:bg-paper-dark transition-colors text-left"
-        >
-          <span className="flex items-center gap-2">
-            <Calendar className="w-3.5 h-3.5 text-ink-500" />
-            <span>Jump to Today</span>
-          </span>
-          <span className="font-mono text-[10px] text-ink-400">T</span>
-        </button>
+            {/* 2. Navigation Actions */}
+            <div className="space-y-0.5 pb-1 mb-1 border-b border-black/[0.06] dark:border-white/[0.08]">
+              <button
+                onClick={() => handleAction(() => setIsQuickAddOpen(true))}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white text-apple-blue font-semibold transition-colors text-left group"
+              >
+                <span className="flex items-center gap-2">
+                  <Plus className="w-3.5 h-3.5 text-apple-blue group-hover:text-white" />
+                  <span>Log New Entry</span>
+                </span>
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded-md bg-apple-blue/15 group-hover:bg-white/20 group-hover:text-white">N</span>
+              </button>
 
-        <div className="grid grid-cols-2 gap-1 pt-0.5">
-          <button
-            onClick={() => handleAction(goToPreviousDay)}
-            className="flex items-center justify-center gap-1 px-2 py-1 rounded-md bg-paper-100 dark:bg-paper-dark hover:bg-paper-200 dark:hover:bg-paper-dark-border text-[11px] font-mono text-ink-700 dark:text-ink-300 transition-colors"
-          >
-            <ChevronLeft className="w-3 h-3" />
-            <span>Prev Day</span>
-          </button>
-          <button
-            onClick={() => handleAction(goToNextDay)}
-            className="flex items-center justify-center gap-1 px-2 py-1 rounded-md bg-paper-100 dark:bg-paper-dark hover:bg-paper-200 dark:hover:bg-paper-dark-border text-[11px] font-mono text-ink-700 dark:text-ink-300 transition-colors"
-          >
-            <span>Next Day</span>
-            <ChevronRight className="w-3 h-3" />
-          </button>
-        </div>
-      </div>
+              <div
+                onClick={() => handleAction(togglePrivacyMode)}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  {privacyMode ? (
+                    <EyeOff className="w-3.5 h-3.5 text-apple-red group-hover:text-white" />
+                  ) : (
+                    <Eye className="w-3.5 h-3.5 text-ink-500 group-hover:text-white" />
+                  )}
+                  <span>Privacy Mask</span>
+                </span>
+                <AppleSwitch
+                  checked={privacyMode}
+                  onChange={() => handleAction(togglePrivacyMode)}
+                  color="blue"
+                  size="sm"
+                  aria-label="Privacy Mask"
+                />
+              </div>
 
-      {/* 3. Theme, Tools & Settings */}
-      <div className="space-y-0.5">
-        <button
-          onClick={() => handleAction(toggleTheme)}
-          className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-paper-200/80 dark:hover:bg-paper-dark transition-colors text-left"
-        >
-          <span className="flex items-center gap-2">
-            {theme === 'dark' ? (
-              <Sun className="w-3.5 h-3.5 text-amber-500" />
-            ) : (
-              <Moon className="w-3.5 h-3.5 text-indigo-600" />
-            )}
-            <span>{theme === 'dark' ? 'Parchment Light Mode' : 'Night Ledger Dark Mode'}</span>
-          </span>
-        </button>
+              <button
+                onClick={() => handleAction(goToToday)}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group"
+              >
+                <span className="flex items-center gap-2">
+                  <Calendar className="w-3.5 h-3.5 text-ink-500 group-hover:text-white" />
+                  <span>Jump to Today</span>
+                </span>
+                <span className="font-mono text-[10px] text-ink-400 group-hover:text-white">T</span>
+              </button>
 
-        <button
-          onClick={() => handleAction(handleExportJSON)}
-          className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-paper-200/80 dark:hover:bg-paper-dark transition-colors text-left"
-        >
-          <span className="flex items-center gap-2">
-            <Download className="w-3.5 h-3.5 text-archival-blue" />
-            <span>Backup Ledger (JSON)</span>
-          </span>
-        </button>
+              <div className="grid grid-cols-2 gap-1 pt-0.5">
+                <button
+                  onClick={() => handleAction(goToPreviousDay)}
+                  className="flex items-center justify-center gap-1 px-2 py-1 rounded-xl bg-black/5 dark:bg-white/10 hover:bg-apple-blue hover:text-white text-[11px] font-mono text-ink-700 dark:text-ink-300 transition-colors"
+                >
+                  <ChevronLeft className="w-3 h-3" />
+                  <span>Prev Day</span>
+                </button>
+                <button
+                  onClick={() => handleAction(goToNextDay)}
+                  className="flex items-center justify-center gap-1 px-2 py-1 rounded-xl bg-black/5 dark:bg-white/10 hover:bg-apple-blue hover:text-white text-[11px] font-mono text-ink-700 dark:text-ink-300 transition-colors"
+                >
+                  <span>Next Day</span>
+                  <ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
 
-        <button
-          onClick={() => handleAction(() => setActiveView('settings'))}
-          className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-paper-200/80 dark:hover:bg-paper-dark transition-colors text-left"
-        >
-          <span className="flex items-center gap-2">
-            <Settings className="w-3.5 h-3.5 text-ink-500" />
-            <span>Settings & Sovereignty</span>
-          </span>
-        </button>
+            {/* 3. Theme, Tools & Settings */}
+            <div className="space-y-0.5">
+              <div
+                onClick={() => handleAction(toggleTheme)}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  {theme === 'dark' ? (
+                    <Moon className="w-3.5 h-3.5 text-apple-indigo group-hover:text-white" />
+                  ) : (
+                    <Sun className="w-3.5 h-3.5 text-apple-orange group-hover:text-white" />
+                  )}
+                  <span>Dark Mode</span>
+                </span>
+                <AppleSwitch
+                  checked={theme === 'dark'}
+                  onChange={() => handleAction(toggleTheme)}
+                  color="indigo"
+                  size="sm"
+                  aria-label="Dark Mode"
+                />
+              </div>
 
-        <button
-          onClick={() => handleAction(refreshAllData)}
-          className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-paper-200/80 dark:hover:bg-paper-dark transition-colors text-left text-ink-500 hover:text-ink-700 dark:hover:text-ink-300"
-        >
-          <span className="flex items-center gap-2">
-            <RotateCcw className="w-3.5 h-3.5 text-ink-400" />
-            <span>Reload Journal Pages</span>
-          </span>
-        </button>
-      </div>
-    </div>
+              <div
+                onClick={() => handleAction(togglePerformanceMode)}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <Zap className="w-3.5 h-3.5 text-apple-orange group-hover:text-white" />
+                  <span>Performance Mode</span>
+                </span>
+                <AppleSwitch
+                  checked={performanceMode}
+                  onChange={() => handleAction(togglePerformanceMode)}
+                  color="orange"
+                  size="sm"
+                  aria-label="Performance Mode"
+                />
+              </div>
+
+              <button
+                onClick={() => handleAction(handleExportJSON)}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group"
+              >
+                <span className="flex items-center gap-2">
+                  <Download className="w-3.5 h-3.5 text-apple-green group-hover:text-white" />
+                  <span>Backup Data (JSON)</span>
+                </span>
+              </button>
+
+              <button
+                onClick={() => handleAction(() => setActiveView('settings'))}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group"
+              >
+                <span className="flex items-center gap-2">
+                  <Settings className="w-3.5 h-3.5 text-ink-500 group-hover:text-white" />
+                  <span>Settings</span>
+                </span>
+              </button>
+
+              <button
+                onClick={() => handleAction(refreshAllData)}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left text-ink-500 group-hover:text-white"
+              >
+                <span className="flex items-center gap-2">
+                  <RotateCcw className="w-3.5 h-3.5 text-ink-400 group-hover:text-white" />
+                  <span>Reload Ledger</span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </GlassSurface>
+      </motion.div>
+    </AnimatePresence>
   );
 };
+
+export default CustomContextMenu;

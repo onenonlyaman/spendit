@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowRight,
   BookOpen,
@@ -32,7 +33,7 @@ export const OnboardingGuideModal: React.FC<OnboardingGuideModalProps> = ({ onCl
   } = useFinance();
 
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
-  const [sandboxInput, setSandboxInput] = useState('chai 15 cash');
+  const [sandboxInput, setSandboxInput] = useState('chai 15 cash morning');
   const [hasTestedLog, setHasTestedLog] = useState(false);
 
   const parsedSandbox = parseNaturalLanguageInput(sandboxInput, accounts, categories);
@@ -61,231 +62,200 @@ export const OnboardingGuideModal: React.FC<OnboardingGuideModalProps> = ({ onCl
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-ink-900/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="max-w-xl w-full bg-paper-50 dark:bg-paper-dark-card rounded-2xl shadow-ledger-lg border-2 border-paper-400 dark:border-paper-dark-border overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Leather Spine Header */}
-        <div className="h-2 bg-gradient-to-r from-archival-brass via-archival-ochre to-archival-brass w-full"></div>
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md animate-in fade-in duration-150">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ type: "spring", stiffness: 450, damping: 35 }}
+        className="max-w-xl w-full bg-white dark:bg-[#1C1C1E] rounded-3xl shadow-apple-float border border-black/10 dark:border-white/10 overflow-hidden flex flex-col max-h-[90vh]"
+      >
         <div className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1 font-sans">
           {/* Header & Step Counter */}
-          <div className="flex items-start justify-between border-b border-paper-300 dark:border-paper-dark-border pb-4">
-            <div className="flex items-center space-x-3">
-              <img src="/logo.png" alt="SpendIt Logo" className="w-10 h-10 rounded-xl object-contain shadow-sm" />
-              <div className="space-y-0.5">
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs uppercase font-mono tracking-widest text-archival-ochre font-bold">
-                    Journal Initiation
-                  </span>
-                  <span className="text-paper-400">•</span>
-                  <span className="text-xs font-mono text-ink-500">
-                    Step {currentStep} of 3
-                  </span>
-                </div>
-                <h2 className="font-serif font-bold text-2xl text-ink-900 dark:text-ink-100">
-                  {currentStep === 1 && 'Welcome to Your Financial Folio'}
-                  {currentStep === 2 && 'Lightning Shorthand Journaling'}
-                  {currentStep === 3 && 'The Daily Closing Ceremony'}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-xl bg-apple-blue flex items-center justify-center text-white font-bold text-sm">
+                S
+              </div>
+              <div>
+                <span className="text-xs uppercase font-mono tracking-wider text-ink-400">
+                  SpendIt Welcome
+                </span>
+                <h2 className="font-sans font-bold text-xl text-ink-900 dark:text-ink-100">
+                  Welcome to SpendIt Folio
                 </h2>
               </div>
             </div>
 
-
             <button
               onClick={handleFinish}
-              className="p-1.5 rounded-lg text-ink-400 hover:text-ink-900 dark:hover:text-ink-200"
-              aria-label="Close Onboarding"
+              className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-ink-400"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* STEP 1: Core Concept & Starting Balances */}
-          {currentStep === 1 && (
-            <div className="space-y-5 animate-in fade-in duration-150">
-              <p className="text-xs sm:text-sm text-ink-700 dark:text-ink-300 leading-relaxed font-serif">
-                SpendIt is designed like a personal, leather-bound financial notebook. No SaaS dashboards, no cloud tracking. Every rupee you spend is journaled with double-entry integrity.
-              </p>
+          {/* Stepper Dots */}
+          <div className="flex items-center space-x-2">
+            {[1, 2, 3].map(step => (
+              <div
+                key={step}
+                className={`h-1.5 rounded-full transition-all ${
+                  step === currentStep
+                    ? 'w-8 bg-apple-blue'
+                    : step < currentStep
+                    ? 'w-4 bg-apple-blue/40'
+                    : 'w-4 bg-black/10 dark:bg-white/15'
+                }`}
+              />
+            ))}
+          </div>
 
-              <div className="p-4 rounded-xl bg-paper-100 dark:bg-paper-dark border border-paper-300 dark:border-paper-dark-border space-y-3">
-                <span className="text-xs font-mono font-bold uppercase text-ink-800 dark:text-ink-200 block">
-                  Your Pre-Seeded Ledger Accounts:
-                </span>
-                <div className="grid grid-cols-2 gap-2.5 text-xs font-mono">
-                  {accounts.slice(0, 4).map(acc => (
-                    <div key={acc.id} className="p-2.5 rounded bg-paper-50 dark:bg-paper-dark-card border border-paper-200 dark:border-paper-dark-border">
-                      <span className="text-ink-500 text-[11px] block">{acc.name}</span>
-                      <span className="font-bold text-ink-900 dark:text-ink-100 block mt-0.5">
-                        {formatCurrency(acc.balance, currencySymbol)}
-                      </span>
-                    </div>
-                  ))}
+          {/* Step 1: Physical Ledger Metaphor */}
+          {currentStep === 1 && (
+            <div className="space-y-4 animate-in fade-in duration-200">
+              <div className="p-5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06] space-y-3">
+                <div className="flex items-center space-x-2.5">
+                  <div className="w-7 h-7 rounded-xl bg-apple-blue/15 text-apple-blue flex items-center justify-center">
+                    <BookOpen className="w-4 h-4" />
+                  </div>
+                  <h3 className="font-sans font-bold text-sm text-ink-900 dark:text-ink-100">
+                    Your Personal Financial Ledger
+                  </h3>
                 </div>
-                <p className="text-[11px] text-ink-500 italic">
-                  You can edit names, initial balances, and add new banks anytime in Accounts.
+                <p className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed">
+                  SpendIt gives you complete data sovereignty with an offline-first SQLite database. No cloud accounts, no subscriptions, no tracking.
                 </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]">
+                  <span className="font-bold text-ink-900 dark:text-ink-100 block">Daily Folio</span>
+                  <span className="text-ink-500 text-[11px] mt-0.5 block">Log transactions and reflections day by day.</span>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]">
+                  <span className="font-bold text-ink-900 dark:text-ink-100 block">Safe-to-Spend</span>
+                  <span className="text-ink-500 text-[11px] mt-0.5 block">Live compass calculating remaining daily budget.</span>
+                </div>
               </div>
             </div>
           )}
 
-          {/* STEP 2: Interactive Shorthand Sandbox */}
+          {/* Step 2: Interactive Shorthand Logging Sandbox */}
           {currentStep === 2 && (
-            <div className="space-y-5 animate-in fade-in duration-150">
-              <p className="text-xs sm:text-sm text-ink-700 dark:text-ink-300 leading-relaxed">
-                Log entries in 3 seconds by typing naturally with Indian terms. Try editing the phrase below:
-              </p>
+            <div className="space-y-4 animate-in fade-in duration-200">
+              <div className="p-4 rounded-2xl bg-apple-blue/10 border border-apple-blue/20 text-xs">
+                <span className="font-bold text-apple-blue block">Interactive Shorthand Sandbox</span>
+                <span className="text-ink-700 dark:text-ink-300 mt-1 block">
+                  Type naturally using merchant, amount, account, and time of day.
+                </span>
+              </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <input
                   type="text"
                   value={sandboxInput}
                   onChange={e => setSandboxInput(e.target.value)}
-                  placeholder='e.g. "kirana 450 upi", "chai 15 cash", "rent 20k hdfc"'
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-paper-100 dark:bg-paper-dark text-ink-900 dark:text-ink-100 font-sans text-sm border-2 border-archival-ochre/60 focus:outline-none shadow-inner"
-                  autoFocus
+                  className="w-full px-4 py-2.5 rounded-2xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-xs font-mono outline-none focus:ring-2 focus:ring-apple-blue"
+                  placeholder='e.g. "chai 15 cash morning"'
                 />
 
-                {/* Example Quick Pills */}
-                <div className="flex flex-wrap gap-1.5">
-                  <span className="text-[10px] font-mono text-ink-500 mr-1">Try:</span>
-                  {['chai 15 cash morning', 'lunch 250 upi noon', 'coffee 180 12:23 pm', 'dinner 1200 hdfc night'].map(prompt => (
-                    <button
-                      key={prompt}
-                      type="button"
-                      onClick={() => setSandboxInput(prompt)}
-                      className="text-[11px] font-mono px-2 py-0.5 rounded bg-paper-200/80 dark:bg-paper-dark text-ink-700 dark:text-ink-300 hover:bg-paper-300 border border-paper-300 dark:border-paper-dark-border"
-                    >
-                      {prompt}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Live Shorthand Preview */}
-                <div className="p-3.5 rounded-xl bg-paper-100 dark:bg-paper-dark border border-paper-300 dark:border-paper-dark-border space-y-2 text-xs font-mono">
-                  <div className="flex items-center justify-between text-archival-brass font-bold">
-                    <span>⚡ Live Shorthand Parser</span>
-                    <span>{parsedSandbox.amount > 0 ? '✓ Ready' : '• Type amount...'}</span>
+                {/* Live parsed preview */}
+                <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06] text-xs font-mono flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-ink-400 block">Parsed Description:</span>
+                    <span className="font-bold text-ink-900 dark:text-ink-100">{parsedSandbox.description || '—'}</span>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <div>
-                      <span className="text-[10px] text-ink-400 block">Description</span>
-                      <span className="font-semibold text-ink-900 dark:text-ink-100">{parsedSandbox.description || '—'}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-ink-400 block">Amount</span>
-                      <span className="font-bold text-archival-red">{formatCurrency(parsedSandbox.amount, currencySymbol)}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-ink-400 block">Account</span>
-                      <span className="font-semibold text-ink-900 dark:text-ink-100">
-                        {accounts.find(a => a.id === parsedSandbox.accountId)?.name || 'Cash'}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-ink-400 block">Time & Slot</span>
-                      <span className="font-semibold text-ink-900 dark:text-ink-100">
-                        {parsedSandbox.time || 'Now'}
-                        {parsedSandbox.timeSlot && ` (${parsedSandbox.timeSlot.replace('_', ' ')})`}
-                      </span>
-                    </div>
+                  <div className="text-right">
+                    <span className="text-[10px] text-ink-400 block">Parsed Amount:</span>
+                    <span className="font-bold text-apple-green">{formatCurrency(parsedSandbox.amount, currencySymbol)}</span>
                   </div>
                 </div>
+              </div>
 
-                {!hasTestedLog ? (
-                  <button
-                    onClick={handleTestLogging}
-                    className="w-full py-2 bg-archival-ochre text-paper-50 font-mono text-xs font-bold rounded-lg hover:bg-archival-ochre/90 transition-colors shadow-sm flex items-center justify-center space-x-1.5"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Record Sample Entry to Today's Ledger</span>
-                  </button>
+              <button
+                type="button"
+                onClick={handleTestLogging}
+                disabled={hasTestedLog}
+                className="w-full py-2.5 rounded-xl bg-apple-blue hover:bg-apple-blue/90 text-white font-sans text-xs font-semibold shadow-sm transition-all flex items-center justify-center space-x-1.5"
+              >
+                {hasTestedLog ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-white" />
+                    <span>Logged to Today's Folio!</span>
+                  </>
                 ) : (
-                  <div className="p-2.5 rounded-lg bg-archival-green-light dark:bg-archival-green/20 border border-archival-green/40 text-archival-green text-xs font-mono text-center font-bold flex items-center justify-center space-x-1.5">
-                    <Check className="w-4 h-4" />
-                    <span>Sample entry recorded on Today's Folio!</span>
-                  </div>
+                  <>
+                    <Plus className="w-4 h-4" />
+                    <span>Try Recording Entry</span>
+                  </>
                 )}
-              </div>
+              </button>
             </div>
           )}
 
-          {/* STEP 3: The Mindful Daily Closing Ceremony */}
+          {/* Step 3: Sovereign Storage & Offline Export */}
           {currentStep === 3 && (
-            <div className="space-y-5 animate-in fade-in duration-150">
-              <p className="text-xs sm:text-sm text-ink-700 dark:text-ink-300 leading-relaxed font-serif">
-                SpendIt turns budgeting into a mindful evening closing ceremony.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div className="p-3.5 rounded-xl bg-paper-100 dark:bg-paper-dark border border-paper-300 dark:border-paper-dark-border space-y-1.5">
-                  <div className="flex items-center space-x-1.5 font-bold text-ink-900 dark:text-ink-100">
-                    <Edit3 className="w-4 h-4 text-archival-brass" />
-                    <span>Margin Notes & Mood</span>
-                  </div>
-                  <p className="text-[11px] text-ink-500">
-                    Record your mood, weather, and handwritten thoughts in Caveat cursive script on each day's folio page.
-                  </p>
+            <div className="space-y-4 animate-in fade-in duration-200">
+              <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06] space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Vault className="w-4 h-4 text-apple-green" />
+                  <span className="font-bold text-xs text-ink-900 dark:text-ink-100">
+                    Offline Sovereignty & High-DPI Prints
+                  </span>
                 </div>
-
-                <div className="p-3.5 rounded-xl bg-paper-100 dark:bg-paper-dark border border-paper-300 dark:border-paper-dark-border space-y-1.5">
-                  <div className="flex items-center space-x-1.5 font-bold text-ink-900 dark:text-ink-100">
-                    <span className="text-archival-red font-serif font-bold">✓</span>
-                    <span>Wax Seal Verification</span>
-                  </div>
-                  <p className="text-[11px] text-ink-500">
-                    Click <strong className="text-ink-800 dark:text-ink-200">[Seal Today's Page]</strong> at night to reconcile your records with a red wax stamp.
-                  </p>
-                </div>
+                <p className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed">
+                  Your finances stay strictly on this device. You can export complete JSON backups anytime or generate vector PDF print folios for your physical binder.
+                </p>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-paper-200/70 dark:bg-paper-dark border border-paper-300 dark:border-paper-dark-border flex items-center justify-between text-xs font-mono">
-                <span>Keyboard Shortcuts:</span>
-                <div className="flex space-x-1.5 text-[10px]">
-                  <kbd className="px-1.5 py-0.5 bg-paper-50 dark:bg-paper-dark-card border rounded font-bold">N: Log</kbd>
-                  <kbd className="px-1.5 py-0.5 bg-paper-50 dark:bg-paper-dark-card border rounded font-bold">P: Mask</kbd>
-                  <kbd className="px-1.5 py-0.5 bg-paper-50 dark:bg-paper-dark-card border rounded font-bold">T: Today</kbd>
+              <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06] text-xs space-y-1.5">
+                <span className="font-bold text-ink-900 dark:text-ink-100 block">Keyboard Shortcuts Quick-Card:</span>
+                <div className="grid grid-cols-2 gap-1.5 font-mono text-[11px] text-ink-600 dark:text-ink-400">
+                  <span><kbd className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/10">N</kbd> Log Entry</span>
+                  <span><kbd className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/10">P</kbd> Privacy Mask</span>
+                  <span><kbd className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/10">T</kbd> Jump to Today</span>
+                  <span><kbd className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/10">← / →</kbd> Prev/Next Day</span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Footer Navigation Buttons */}
-          <div className="flex items-center justify-between pt-4 border-t border-paper-300 dark:border-paper-dark-border">
+          {/* Navigation Controls */}
+          <div className="flex items-center justify-between pt-4 border-t border-black/[0.06] dark:border-white/[0.08]">
             {currentStep > 1 ? (
               <button
-                onClick={() => setCurrentStep((prev) => (prev - 1) as any)}
-                className="px-4 py-2 rounded-lg text-xs font-mono text-ink-600 hover:bg-paper-200 dark:hover:bg-paper-dark transition-colors"
+                type="button"
+                onClick={() => setCurrentStep((prev) => (prev - 1) as 1 | 2 | 3)}
+                className="px-4 py-2 text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl"
               >
                 Back
               </button>
             ) : (
-              <button
-                onClick={handleFinish}
-                className="px-4 py-2 rounded-lg text-xs font-mono text-ink-500 hover:text-ink-800 transition-colors"
-              >
-                Skip Guide
-              </button>
+              <div />
             )}
 
             {currentStep < 3 ? (
               <button
-                onClick={() => setCurrentStep((prev) => (prev + 1) as any)}
-                className="px-5 py-2 rounded-lg bg-ink-900 dark:bg-paper-100 text-paper-50 dark:text-ink-900 text-xs font-semibold flex items-center space-x-1.5 shadow-sm hover:opacity-90 transition-opacity"
+                type="button"
+                onClick={() => setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3)}
+                className="px-5 py-2.5 rounded-xl bg-apple-blue hover:bg-apple-blue/90 text-white font-sans text-xs font-semibold flex items-center space-x-1 shadow-sm transition-all"
               >
                 <span>Continue</span>
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
             ) : (
               <button
+                type="button"
                 onClick={handleFinish}
-                className="px-6 py-2 rounded-lg bg-archival-green text-paper-50 text-xs font-bold font-mono flex items-center space-x-1.5 shadow-sm hover:bg-archival-green/90 transition-colors"
+                className="px-5 py-2.5 rounded-xl bg-apple-blue hover:bg-apple-blue/90 text-white font-sans text-xs font-semibold shadow-sm transition-all"
               >
-                <span>Open My Journal</span>
-                <ArrowRight className="w-4 h-4" />
+                Start Journaling
               </button>
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

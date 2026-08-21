@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   BookOpen,
   Calendar,
@@ -95,98 +96,92 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-ink-900/70 backdrop-blur-sm animate-in fade-in">
-      <div className="max-w-4xl w-full bg-paper-50 dark:bg-paper-dark-card rounded-2xl shadow-ledger-lg border-2 border-paper-400 dark:border-paper-dark-border overflow-hidden max-h-[92vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md animate-in fade-in duration-150">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ type: "spring", stiffness: 450, damping: 35 }}
+        className="max-w-4xl w-full bg-white dark:bg-[#1C1C1E] rounded-3xl shadow-apple-float border border-black/10 dark:border-white/10 overflow-hidden max-h-[92vh] flex flex-col"
+      >
         {/* Modal Toolbar */}
-        <div className="bg-paper-200/90 dark:bg-paper-dark px-6 py-4 border-b border-paper-300 dark:border-paper-dark-border flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-lg bg-archival-ochre/20 text-archival-ochre flex items-center justify-center">
+        <div className="bg-black/[0.02] dark:bg-white/[0.03] px-5 py-3.5 border-b border-black/[0.06] dark:border-white/[0.08] flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-8 h-8 rounded-xl bg-apple-blue/15 text-apple-blue flex items-center justify-center">
               <Printer className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-serif font-bold text-base text-ink-900 dark:text-ink-100">
-                Printable Archival Ledger PDF
+              <h3 className="font-sans font-bold text-sm text-ink-900 dark:text-ink-100">
+                Vector Archival Print & Export
               </h3>
-              <p className="text-[11px] font-mono text-ink-500">
-                Formatted for physical ledger print • Audited Folio Record
+              <p className="text-[11px] font-mono text-ink-400">
+                High-DPI printable PDF document
               </p>
             </div>
           </div>
 
           {/* Scope Selector Controls */}
           <div className="flex items-center space-x-2">
-            <div className="flex rounded-lg bg-paper-100 dark:bg-paper-dark-card p-1 border border-paper-300 dark:border-paper-dark-border text-xs font-mono">
+            <div className="apple-segmented-picker !p-0.5">
               <button
                 onClick={() => setScope('day')}
-                className={`px-3 py-1 rounded font-semibold transition-all ${
-                  scope === 'day'
-                    ? 'bg-paper-50 dark:bg-paper-dark text-ink-900 dark:text-ink-100 shadow-sm'
-                    : 'text-ink-500 hover:text-ink-800'
-                }`}
+                className={`apple-segmented-item ${scope === 'day' ? 'apple-segmented-item-active font-semibold' : 'text-ink-500'}`}
               >
                 Today's Folio
               </button>
               <button
                 onClick={() => setScope('month')}
-                className={`px-3 py-1 rounded font-semibold transition-all ${
-                  scope === 'month'
-                    ? 'bg-paper-50 dark:bg-paper-dark text-ink-900 dark:text-ink-100 shadow-sm'
-                    : 'text-ink-500 hover:text-ink-800'
-                }`}
+                className={`apple-segmented-item ${scope === 'month' ? 'apple-segmented-item-active font-semibold' : 'text-ink-500'}`}
               >
                 Monthly Chapter
               </button>
               <button
                 onClick={() => setScope('all')}
-                className={`px-3 py-1 rounded font-semibold transition-all ${
-                  scope === 'all'
-                    ? 'bg-paper-50 dark:bg-paper-dark text-ink-900 dark:text-ink-100 shadow-sm'
-                    : 'text-ink-500 hover:text-ink-800'
-                }`}
+                className={`apple-segmented-item ${scope === 'all' ? 'apple-segmented-item-active font-semibold' : 'text-ink-500'}`}
               >
-                Complete Audit Book
+                Complete Ledger
               </button>
             </div>
 
             <button
               onClick={handlePrint}
-              className="px-4 py-2 bg-ink-900 hover:bg-ink-800 dark:bg-paper-100 dark:hover:bg-paper-200 text-paper-50 dark:text-ink-900 font-sans text-xs font-semibold rounded-lg shadow-sm flex items-center space-x-1.5 transition-all"
+              className="px-3.5 py-1.5 bg-apple-blue hover:bg-apple-blue/90 text-white font-sans text-xs font-semibold rounded-xl shadow-sm flex items-center space-x-1.5 transition-all active:scale-95"
             >
               <Printer className="w-3.5 h-3.5" />
-              <span>Print / Save as PDF</span>
+              <span>Print / Save PDF</span>
             </button>
 
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-ink-400 hover:text-ink-800 dark:hover:text-ink-200"
+              className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-ink-400"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
         {/* Printable Paper Sheet Container (Preview) */}
-        <div className="p-6 sm:p-8 overflow-y-auto flex-1 bg-paper-200/50 dark:bg-paper-dark">
-          <div className="max-w-3xl mx-auto bg-white text-ink-900 p-8 sm:p-12 rounded-xl shadow-lg border border-paper-300 font-serif">
-            {/* Archival Ledger Top Seal & Title */}
-            <div className="border-b-2 border-ink-900 pb-5 mb-6">
-              <div className="flex items-center justify-between text-xs font-mono uppercase tracking-widest text-ink-600 mb-2">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 bg-black/[0.03] dark:bg-black/30">
+          <div className="max-w-3xl mx-auto bg-white text-zinc-900 p-6 sm:p-10 rounded-2xl shadow-apple-card border border-black/10 font-sans">
+            {/* Top Seal & Title */}
+            <div className="border-b border-zinc-900 pb-4 mb-5">
+              <div className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-zinc-500 mb-2">
                 <div className="flex items-center space-x-2">
-                  <img src="/logo.png" alt="SpendIt Logo" className="w-4 h-4 rounded object-contain" />
-                  <span>SpendIt • Archival Personal Finance Register</span>
+                  <span className="font-bold text-zinc-900">SpendIt</span>
+                  <span>•</span>
+                  <span>Financial Folio & Register</span>
                 </div>
-                <span>Currency: ₹ (INR)</span>
+                <span>Currency: {currencySymbol}</span>
               </div>
-
 
               <div className="flex items-end justify-between">
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink-900 font-serif">
+                  <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
                     {scope === 'day' && `Daily Ledger Folio: ${dayHeader.dayName}`}
                     {scope === 'month' && `Monthly Financial Chapter: ${monthName}`}
                     {scope === 'all' && `Complete Archival Financial Ledger`}
                   </h1>
-                  <p className="text-xs sm:text-sm italic text-ink-700 mt-1 font-serif">
+                  <p className="text-xs text-zinc-600 mt-1">
                     {scope === 'day' && `${dayHeader.monthName} ${dayHeader.dayNumber}, ${dayHeader.year}`}
                     {scope === 'month' && `Financial summary and verified ledger transactions for ${monthName}`}
                     {scope === 'all' && `Comprehensive transaction ledger across all accounts`}
@@ -194,48 +189,48 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
                 </div>
 
                 <div className="text-right font-mono text-xs">
-                  <span className="block text-ink-500 text-[10px]">VERIFIED REGISTER</span>
-                  <span className="font-semibold text-ink-900">{new Date().toLocaleDateString('en-IN')}</span>
+                  <span className="block text-zinc-400 text-[10px] uppercase">Verified Register</span>
+                  <span className="font-semibold text-zinc-900">{new Date().toLocaleDateString('en-US')}</span>
                 </div>
               </div>
             </div>
 
             {/* Financial Vitals Summary Strip */}
-            <div className="grid grid-cols-3 gap-3 p-3.5 rounded bg-paper-100/80 border border-paper-300 mb-6 font-mono text-xs">
+            <div className="grid grid-cols-3 gap-3 p-3.5 rounded-xl bg-zinc-50 border border-zinc-200 mb-5 font-mono text-xs">
               <div>
-                <span className="text-[10px] text-ink-500 uppercase block">Total Verified Inflow</span>
-                <span className="font-bold text-sm text-archival-green">
+                <span className="text-[10px] text-zinc-500 uppercase block">Total Inflow</span>
+                <span className="font-bold text-sm text-apple-green">
                   +{formatCurrency(totalIncome, currencySymbol)}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-ink-500 uppercase block">Total Verified Outflow</span>
-                <span className="font-bold text-sm text-archival-red">
+                <span className="text-[10px] text-zinc-500 uppercase block">Total Outflow</span>
+                <span className="font-bold text-sm text-apple-red">
                   -{formatCurrency(totalExpense, currencySymbol)}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-ink-500 uppercase block">Net Retained Balance</span>
-                <span className="font-bold text-sm text-ink-900">
+                <span className="text-[10px] text-zinc-500 uppercase block">Net Balance</span>
+                <span className="font-bold text-sm text-zinc-900">
                   {formatCurrency(totalIncome - totalExpense, currencySymbol)}
                 </span>
               </div>
             </div>
 
             {/* Ruled Transaction Table */}
-            <div className="mb-6">
-              <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-ink-700 border-b border-ink-400 pb-1 mb-2">
-                Journaled Transactions ({filteredTransactions.length} records)
+            <div className="mb-5">
+              <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-700 border-b border-zinc-300 pb-1 mb-2">
+                Transactions ({filteredTransactions.length} records)
               </h2>
 
               {filteredTransactions.length === 0 ? (
-                <p className="py-8 text-center text-xs italic text-ink-500">
+                <p className="py-8 text-center text-xs italic text-zinc-400">
                   No ledger entries recorded for this period.
                 </p>
               ) : (
                 <table className="w-full text-left text-xs font-mono border-collapse">
                   <thead>
-                    <tr className="border-b border-ink-300 text-[10px] uppercase text-ink-500">
+                    <tr className="border-b border-zinc-200 text-[10px] uppercase text-zinc-400">
                       <th className="py-1.5 pr-2">Date/Time</th>
                       <th className="py-1.5 px-2">Description & Notes</th>
                       <th className="py-1.5 px-2">Category</th>
@@ -243,44 +238,44 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
                       <th className="py-1.5 pl-2 text-right">Amount</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-paper-200">
+                  <tbody className="divide-y divide-zinc-100">
                     {filteredTransactions.map(t => {
                       const acc = accounts.find(a => a.id === t.accountId);
                       const cat = categories.find(c => c.id === t.categoryId);
                       return (
                         <tr key={t.id} className="align-top">
-                          <td className="py-2 pr-2 text-ink-600 whitespace-nowrap">
+                          <td className="py-2 pr-2 text-zinc-600 whitespace-nowrap">
                             <span className="block">{t.date}</span>
-                            <span className="text-[10px] text-ink-400">{t.time}</span>
+                            <span className="text-[10px] text-zinc-400">{t.time}</span>
                           </td>
                           <td className="py-2 px-2">
-                            <span className="font-semibold text-ink-900 block font-sans">{t.description}</span>
+                            <span className="font-semibold text-zinc-900 block font-sans">{t.description}</span>
                             {t.notes && (
-                              <span className="font-handwriting text-sm italic text-ink-700 block">
-                                ✎ "{t.notes}"
+                              <span className="text-xs italic text-zinc-600 block">
+                                "{t.notes}"
                               </span>
                             )}
                             {t.tags && t.tags.length > 0 && (
-                              <span className="text-[10px] text-ink-400 block mt-0.5">
+                              <span className="text-[10px] text-zinc-400 block mt-0.5">
                                 {t.tags.join(' ')}
                               </span>
                             )}
                           </td>
-                          <td className="py-2 px-2 text-ink-700 whitespace-nowrap">
-                            <span className="px-1.5 py-0.5 rounded bg-paper-100 border border-paper-300 text-[10px]">
+                          <td className="py-2 px-2 text-zinc-700 whitespace-nowrap">
+                            <span className="px-1.5 py-0.5 rounded bg-zinc-100 border border-zinc-200 text-[10px]">
                               {cat?.name || 'General'}
                             </span>
                           </td>
-                          <td className="py-2 px-2 text-ink-700 whitespace-nowrap">
+                          <td className="py-2 px-2 text-zinc-700 whitespace-nowrap">
                             {acc?.name || 'Cash'}
                           </td>
                           <td
                             className={`py-2 pl-2 text-right font-bold whitespace-nowrap ${
                               t.type === 'income'
-                                ? 'text-archival-green'
+                                ? 'text-apple-green'
                                 : t.type === 'transfer'
-                                ? 'text-archival-blue'
-                                : 'text-archival-red'
+                                ? 'text-apple-blue'
+                                : 'text-apple-red'
                             }`}
                           >
                             {t.type === 'income' ? '+' : t.type === 'transfer' ? '⇄ ' : '-'}
@@ -296,23 +291,23 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
 
             {/* Scope = Day: Daily Notes & Reflection Section */}
             {scope === 'day' && currentDayNote && (
-              <div className="mt-6 pt-4 border-t-2 border-paper-300">
-                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-ink-700 mb-2">
-                  Daily Margin Reflection & State of Mind
+              <div className="mt-5 pt-3 border-t border-zinc-200">
+                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-700 mb-2">
+                  Daily Reflection & State of Mind
                 </h3>
-                <div className="p-4 rounded bg-paper-100/60 border border-paper-300">
-                  <div className="flex items-center space-x-4 mb-2 text-xs font-mono text-ink-600">
-                    <span>Mood: <strong className="capitalize text-ink-900">{currentDayNote.mood}</strong></span>
+                <div className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-200">
+                  <div className="flex items-center space-x-3 mb-1.5 text-xs font-mono text-zinc-600">
+                    <span>Mood: <strong className="capitalize text-zinc-900">{currentDayNote.mood}</strong></span>
                     <span>•</span>
-                    <span>Weather: <strong className="capitalize text-ink-900">{currentDayNote.weather}</strong></span>
-                    {currentDayNote.location && <span>• Location: <strong className="text-ink-900">{currentDayNote.location}</strong></span>}
+                    <span>Weather: <strong className="capitalize text-zinc-900">{currentDayNote.weather}</strong></span>
+                    {currentDayNote.location && <span>• Location: <strong className="text-zinc-900">{currentDayNote.location}</strong></span>}
                   </div>
                   {currentDayNote.reflection ? (
-                    <p className="font-handwriting text-lg text-ink-800 leading-relaxed italic">
+                    <p className="text-xs text-zinc-700 italic">
                       "{currentDayNote.reflection}"
                     </p>
                   ) : (
-                    <p className="text-xs text-ink-400 italic">No handwritten reflection recorded.</p>
+                    <p className="text-xs text-zinc-400 italic">No reflection recorded.</p>
                   )}
                 </div>
               </div>
@@ -320,15 +315,15 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
 
             {/* Scope = All or Month: Account Balances Register */}
             {scope !== 'day' && accounts.length > 0 && (
-              <div className="mt-6 pt-4 border-t-2 border-paper-300">
-                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-ink-700 mb-2">
+              <div className="mt-5 pt-3 border-t border-zinc-200">
+                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-700 mb-2">
                   Verified Account Balances
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {accounts.map(acc => (
-                    <div key={acc.id} className="p-2.5 rounded bg-paper-100/60 border border-paper-300 text-xs font-mono">
-                      <span className="text-ink-500 block truncate text-[11px]">{acc.name}</span>
-                      <span className="font-bold text-ink-900 block mt-0.5">
+                    <div key={acc.id} className="p-2 rounded-lg bg-zinc-50 border border-zinc-200 text-xs font-mono">
+                      <span className="text-zinc-500 block truncate text-[10px]">{acc.name}</span>
+                      <span className="font-bold text-zinc-900 block mt-0.5">
                         {formatCurrency(acc.balance, currencySymbol)}
                       </span>
                     </div>
@@ -337,19 +332,17 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
               </div>
             )}
 
-            {/* Physical Archival Stamp */}
-            <div className="mt-8 pt-4 border-t border-ink-300 flex items-center justify-between text-[10px] font-mono text-ink-500">
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 rounded-full border border-ink-400 flex items-center justify-center font-bold text-[8px]">
-                  ✓
-                </div>
-                <span>SEALED & AUDITED • FINANCIAL LEDGER REGISTER</span>
+            {/* Stamp Footer */}
+            <div className="mt-6 pt-3 border-t border-zinc-300 flex items-center justify-between text-[10px] font-mono text-zinc-400">
+              <div className="flex items-center space-x-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-apple-green" />
+                <span>AUDITED FOLIO • SPENDIT FINANCIAL ARCHIVES</span>
               </div>
-              <span>PAGE FOLIO VERIFIED • SPENDIT ARCHIVES</span>
+              <span>REGISTER VERIFIED</span>
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

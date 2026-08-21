@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRightLeft, X } from 'lucide-react';
 import { useFinance } from '../../context/FinanceContext';
 
@@ -27,33 +28,44 @@ export const TransferModal: React.FC<TransferModalProps> = ({ onClose, initialFr
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/60 backdrop-blur-sm animate-in fade-in">
-      <div className="relative max-w-md w-full bg-paper-50 dark:bg-paper-dark-card rounded-xl shadow-ledger-lg border border-paper-400 dark:border-paper-dark-border overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md animate-in fade-in duration-150">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ type: "spring", stiffness: 450, damping: 35 }}
+        className="w-full max-w-md bg-white dark:bg-[#1C1C1E] rounded-3xl shadow-apple-float border border-black/10 dark:border-white/10 overflow-hidden space-y-4 p-6"
+      >
         {/* Header */}
-        <div className="bg-paper-200/80 dark:bg-paper-dark px-5 py-3.5 border-b border-paper-300 dark:border-paper-dark-border flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <ArrowRightLeft className="w-4 h-4 text-archival-blue" />
-            <h3 className="font-serif font-bold text-base text-ink-900 dark:text-ink-100">
-              Inter-Account Fund Transfer
-            </h3>
+        <div className="flex items-center justify-between pb-3 border-b border-black/[0.06] dark:border-white/[0.08]">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-8 h-8 rounded-xl bg-apple-blue/15 text-apple-blue flex items-center justify-center">
+              <ArrowRightLeft className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
+                Transfer Funds
+              </h3>
+              <span className="text-xs font-mono text-ink-400">Inter-account reallocation</span>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-ink-500 hover:text-ink-900 dark:hover:text-ink-200"
+            className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-ink-400"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3.5">
           <div>
-            <label className="block text-xs font-mono text-ink-600 dark:text-ink-400 mb-1">
+            <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">
               Source Account (Outflow)
             </label>
             <select
               value={fromId}
               onChange={e => setFromId(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-paper-100 dark:bg-paper-dark text-ink-900 dark:text-ink-100 border border-paper-300 dark:border-paper-dark-border text-xs"
+              className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 text-xs outline-none"
             >
               {accounts.map(a => (
                 <option key={a.id} value={a.id} disabled={a.id === toId}>
@@ -64,13 +76,13 @@ export const TransferModal: React.FC<TransferModalProps> = ({ onClose, initialFr
           </div>
 
           <div>
-            <label className="block text-xs font-mono text-ink-600 dark:text-ink-400 mb-1">
+            <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">
               Destination Account (Inflow)
             </label>
             <select
               value={toId}
               onChange={e => setToId(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-paper-100 dark:bg-paper-dark text-ink-900 dark:text-ink-100 border border-paper-300 dark:border-paper-dark-border text-xs"
+              className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 text-xs outline-none"
             >
               {accounts.map(a => (
                 <option key={a.id} value={a.id} disabled={a.id === fromId}>
@@ -81,7 +93,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({ onClose, initialFr
           </div>
 
           <div>
-            <label className="block text-xs font-mono text-ink-600 dark:text-ink-400 mb-1">
+            <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">
               Transfer Amount ({currencySymbol})
             </label>
             <input
@@ -91,12 +103,12 @@ export const TransferModal: React.FC<TransferModalProps> = ({ onClose, initialFr
               value={amount}
               onChange={e => setAmount(e.target.value)}
               placeholder="0.00"
-              className="w-full px-3 py-2 rounded-lg bg-paper-100 dark:bg-paper-dark text-ink-900 dark:text-ink-100 font-mono text-sm border border-paper-300 dark:border-paper-dark-border"
+              className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 font-mono text-sm border border-black/10 dark:border-white/10 outline-none focus:ring-2 focus:ring-apple-blue"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-mono text-ink-600 dark:text-ink-400 mb-1">
+            <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">
               Transfer Memo / Note
             </label>
             <input
@@ -104,28 +116,28 @@ export const TransferModal: React.FC<TransferModalProps> = ({ onClose, initialFr
               value={description}
               onChange={e => setDescription(e.target.value)}
               placeholder="e.g. Monthly savings allocation"
-              className="w-full px-3 py-2 rounded-lg bg-paper-100 dark:bg-paper-dark text-ink-900 dark:text-ink-100 text-xs border border-paper-300 dark:border-paper-dark-border"
+              className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 text-xs border border-black/10 dark:border-white/10 outline-none focus:ring-2 focus:ring-apple-blue"
             />
           </div>
 
-          <div className="flex justify-end space-x-2 pt-3 border-t border-paper-300 dark:border-paper-dark-border">
+          <div className="flex justify-end space-x-2 pt-2 border-t border-black/[0.06] dark:border-white/[0.08]">
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-1.5 rounded-md text-xs text-ink-600 hover:bg-paper-200"
+              className="px-4 py-2 text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!amount || parseFloat(amount) <= 0 || fromId === toId}
-              className="px-4 py-1.5 rounded-md bg-archival-blue hover:bg-archival-blue/90 text-paper-50 text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
+              className="px-4 py-2 bg-apple-blue hover:bg-apple-blue/90 text-white rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-95 disabled:opacity-50"
             >
               Confirm Transfer
             </button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 };

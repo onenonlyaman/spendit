@@ -1,14 +1,7 @@
 {
   "name": "spendit",
   "private": true,
-  "version": "1.0.8",
-
-
-
-
-
-
-
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "tauri": "tauri",
@@ -32,6 +25,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "lucide-react": "^1.16.0",
+    "motion": "^13.1.1",
     "pg": "^8.13.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

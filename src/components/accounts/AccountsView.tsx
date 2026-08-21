@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   AlertTriangle,
   ArrowRightLeft,
   Banknote,
   Building2,
   Check,
+  ChevronDown,
   CreditCard,
   Edit2,
   Plus,
@@ -14,6 +16,7 @@ import {
   Trash2,
   TrendingUp,
   Vault,
+  Wallet,
   X,
 } from 'lucide-react';
 import { useFinance } from '../../context/FinanceContext';
@@ -34,6 +37,7 @@ export const AccountsView: React.FC = () => {
 
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [transferSourceId, setTransferSourceId] = useState<string | undefined>(undefined);
+  const [expandedAccountId, setExpandedAccountId] = useState<string | null>(null);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [deletingAccount, setDeletingAccount] = useState<Account | null>(null);
@@ -111,14 +115,16 @@ export const AccountsView: React.FC = () => {
     setIsCreatingAccount(false);
   };
 
-  const handleUpdateAccount = async (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingAccount || !editName.trim()) return;
+
+    const initialBal = parseFloat(editBalance);
 
     await updateAccount(editingAccount.id, {
       name: editName.trim(),
       type: editType,
-      initialBalance: parseFloat(editBalance) || 0,
+      initialBalance: isNaN(initialBal) ? editingAccount.initialBalance : initialBal,
       institution: editInstitution.trim() || undefined,
       accountNumberMasked: editMasked.trim() || undefined,
     });
@@ -126,7 +132,7 @@ export const AccountsView: React.FC = () => {
     setEditingAccount(null);
   };
 
-  const handleDeleteAccountConfirm = async () => {
+  const handleDeleteConfirm = async () => {
     if (!deletingAccount) return;
     await deleteAccount(deletingAccount.id);
     setDeletingAccount(null);
@@ -137,101 +143,100 @@ export const AccountsView: React.FC = () => {
       return <Smartphone className="w-5 h-5" />;
     }
     switch (type) {
-      case 'cash':
-        return <Banknote className="w-5 h-5" />;
       case 'bank':
         return <Building2 className="w-5 h-5" />;
       case 'credit':
         return <CreditCard className="w-5 h-5" />;
       case 'savings':
-      case 'investment':
         return <Vault className="w-5 h-5" />;
+      case 'cash':
+      default:
+        return <Banknote className="w-5 h-5" />;
     }
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 sm:px-6 space-y-6">
-      {/* Header & Net Worth Vitals */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-paper-50 dark:bg-paper-dark-card p-6 rounded-2xl border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger">
-        <div>
-          <span className="text-xs uppercase font-mono tracking-widest text-archival-ochre font-bold">
-            Ledger Asset & Liability Register
-          </span>
-          <h1 className="font-serif font-bold text-3xl text-ink-900 dark:text-ink-100 mt-1">
-            Accounts & Vaults
-          </h1>
-          <p className="text-xs font-sans text-ink-600 dark:text-ink-400 mt-0.5">
-            Real-time balances calculated directly from your ledger entries.
-          </p>
+    <div className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6">
+      {/* Apple-Style Net Worth Summary Card */}
+      <div className="apple-glass-card rounded-3xl p-6 sm:p-8 space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-xs uppercase font-mono tracking-wider text-ink-400 dark:text-ink-500 font-semibold block">
+              Portfolio & Liquidity
+            </span>
+            <h1 className="font-sans font-bold text-2xl sm:text-3xl text-ink-900 dark:text-ink-100 tracking-tight mt-0.5">
+              Net Worth: {formatCurrency(netWorth, currencySymbol, privacyMode)}
+            </h1>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => {
+                setTransferSourceId(undefined);
+                setIsTransferOpen(true);
+              }}
+              className="px-3.5 py-2 rounded-xl bg-apple-blue/10 hover:bg-apple-blue/15 text-apple-blue text-xs font-semibold flex items-center space-x-1.5 transition-colors"
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5" />
+              <span>Transfer</span>
+            </button>
+
+            <button
+              onClick={() => setIsCreatingAccount(true)}
+              className="px-3.5 py-2 rounded-xl bg-apple-blue hover:bg-apple-blue/90 text-white text-xs font-semibold flex items-center space-x-1.5 shadow-sm transition-all active:scale-95"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>New Account</span>
+            </button>
+          </div>
         </div>
 
-        {/* Net Worth Callout */}
-        <div className="flex items-center space-x-6 bg-paper-100 dark:bg-paper-dark p-4 rounded-xl border border-paper-300 dark:border-paper-dark-border">
-          <div>
-            <span className="text-[11px] font-mono text-ink-500 block">Total Net Position</span>
-            <span className="font-mono font-bold text-xl text-ink-900 dark:text-ink-100">
-              {formatCurrency(netWorth, currencySymbol, privacyMode)}
+        {/* Asset vs Liability Metric Breakdown Pills */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
+          <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]">
+            <span className="text-[11px] font-mono text-ink-500 dark:text-ink-400 block">Total Liquid Assets</span>
+            <span className="font-mono font-bold text-base sm:text-lg text-apple-green block mt-0.5">
+              {formatCurrency(totalAssets, currencySymbol, privacyMode)}
             </span>
           </div>
-          <div className="border-l border-paper-300 dark:border-paper-dark-border pl-4 space-y-0.5 text-xs font-mono">
-            <div className="flex justify-between space-x-4">
-              <span className="text-ink-500">Assets:</span>
-              <span className="font-semibold text-archival-green">
-                {formatCurrency(totalAssets, currencySymbol, privacyMode)}
-              </span>
-            </div>
-            <div className="flex justify-between space-x-4">
-              <span className="text-ink-500">Liabilities:</span>
-              <span className="font-semibold text-archival-red">
-                {formatCurrency(totalLiabilities, currencySymbol, privacyMode)}
-              </span>
-            </div>
+
+          <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]">
+            <span className="text-[11px] font-mono text-ink-500 dark:text-ink-400 block">Credit & Liabilities</span>
+            <span className="font-mono font-bold text-base sm:text-lg text-apple-red block mt-0.5">
+              {formatCurrency(totalLiabilities, currencySymbol, privacyMode)}
+            </span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06] col-span-2 sm:col-span-1">
+            <span className="text-[11px] font-mono text-ink-500 dark:text-ink-400 block">Active Accounts</span>
+            <span className="font-mono font-bold text-base sm:text-lg text-ink-900 dark:text-ink-100 block mt-0.5">
+              {accounts.length} Sources
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Account Action Buttons */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => {
-              setTransferSourceId(undefined);
-              setIsTransferOpen(true);
-            }}
-            className="px-3.5 py-1.5 rounded-lg bg-paper-200 hover:bg-paper-300 dark:bg-paper-dark-card text-xs font-mono text-ink-800 dark:text-ink-200 border border-paper-300 dark:border-paper-dark-border flex items-center space-x-1.5 shadow-sm"
-          >
-            <ArrowRightLeft className="w-3.5 h-3.5 text-archival-blue" />
-            <span>Transfer Between Accounts</span>
-          </button>
-        </div>
-
-        <button
-          onClick={() => setIsCreatingAccount(true)}
-          className="px-3.5 py-1.5 rounded-lg bg-ink-900 hover:bg-ink-800 dark:bg-paper-100 dark:hover:bg-paper-200 text-paper-50 dark:text-ink-900 text-xs font-sans font-semibold flex items-center space-x-1.5 shadow-sm"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>New Account</span>
-        </button>
-      </div>
-
-      {/* Account Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {/* Apple Wallet Style Account Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {accounts.map(acc => {
+          const isExpanded = expandedAccountId === acc.id;
           const accTxns = transactions.filter(
             t => t.accountId === acc.id || t.destinationAccountId === acc.id
           );
           const isNegative = acc.balance < 0;
 
           return (
-            <div
+            <motion.div
               key={acc.id}
-              className="relative p-5 rounded-2xl bg-paper-50 dark:bg-paper-dark-card border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger hover:shadow-ledger-lg transition-all flex flex-col justify-between group"
+              layout
+              onClick={() => setExpandedAccountId(isExpanded ? null : acc.id)}
+              className="apple-inset-group shadow-apple-card hover:shadow-apple-float transition-all p-5 flex flex-col justify-between cursor-pointer"
             >
               <div>
-                {/* Card Top Row */}
+                {/* Card Top */}
                 <div className="flex items-center justify-between mb-3">
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm"
+                    className="w-10 h-10 rounded-2xl flex items-center justify-center border shadow-sm"
                     style={{
                       backgroundColor: `${acc.color}15`,
                       borderColor: `${acc.color}35`,
@@ -241,21 +246,20 @@ export const AccountsView: React.FC = () => {
                     {getAccountIcon(acc.type, acc.name)}
                   </div>
 
-                  {/* Actions: Edit & Delete */}
-                  <div className="flex items-center space-x-1">
-                    <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded bg-paper-200 dark:bg-paper-dark text-ink-600 border border-paper-300 mr-1">
+                  <div className="flex items-center space-x-1" onClick={e => e.stopPropagation()}>
+                    <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-ink-600 dark:text-ink-400 font-semibold mr-1">
                       {acc.type}
                     </span>
                     <button
                       onClick={() => handleOpenEdit(acc)}
-                      className="p-1 rounded text-ink-400 hover:text-ink-900 dark:hover:text-ink-100 transition-colors"
+                      className="p-1.5 rounded-lg text-ink-400 hover:text-ink-900 dark:hover:text-ink-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                       title="Edit Account"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => setDeletingAccount(acc)}
-                      className="p-1 rounded text-ink-400 hover:text-archival-red transition-colors"
+                      className="p-1.5 rounded-lg text-ink-400 hover:text-apple-red hover:bg-apple-red/10 transition-colors"
                       title="Delete Account"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -263,274 +267,316 @@ export const AccountsView: React.FC = () => {
                   </div>
                 </div>
 
-                <h3 className="font-serif font-bold text-lg text-ink-900 dark:text-ink-100 leading-snug">
+                <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
                   {acc.name}
                 </h3>
                 <p className="text-xs font-mono text-ink-500 mb-4">
-                  {acc.institution || (acc.type === 'cash' ? 'Physical Cash' : 'Personal Account')}
+                  {acc.institution || (acc.type === 'cash' ? 'Physical Cash' : 'Personal Wallet')}
                   {acc.accountNumberMasked ? ` • ${acc.accountNumberMasked}` : ''}
                 </p>
               </div>
 
-              <div className="pt-3 border-t border-paper-200 dark:border-paper-dark-border">
-                <span className="text-[10px] font-mono text-ink-400 block uppercase">
-                  Reconciled Ledger Balance
-                </span>
-                <span
-                  className={`font-mono font-bold text-2xl block mt-0.5 ${
-                    isNegative ? 'text-archival-red' : 'text-ink-900 dark:text-ink-100'
-                  }`}
-                >
-                  {formatCurrency(acc.balance, currencySymbol, privacyMode)}
-                </span>
+              <div>
+                <div className="pt-3 border-t border-black/[0.04] dark:border-white/[0.06]">
+                  <span className="text-[10px] font-mono text-ink-400 block uppercase">
+                    Available Balance
+                  </span>
+                  <span
+                    className={`font-mono font-bold text-2xl block mt-0.5 ${
+                      isNegative ? 'text-apple-red' : 'text-ink-900 dark:text-ink-100'
+                    }`}
+                  >
+                    {formatCurrency(acc.balance, currencySymbol, privacyMode)}
+                  </span>
+                </div>
 
-                <div className="flex items-center justify-between mt-3 pt-2 text-[11px] font-mono text-ink-500 border-t border-paper-200/50">
+                <div className="flex items-center justify-between mt-3 pt-2 text-[11px] font-mono text-ink-500 border-t border-black/[0.04] dark:border-white/[0.06]">
                   <span>{accTxns.length} records</span>
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setTransferSourceId(acc.id);
                       setIsTransferOpen(true);
                     }}
-                    className="text-archival-blue font-semibold hover:underline"
+                    className="text-apple-blue font-semibold hover:underline"
                   >
                     Transfer Funds →
                   </button>
                 </div>
               </div>
-            </div>
+
+              {/* Progressive Disclosure: Mini-Statement */}
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="overflow-hidden mt-3 pt-3 border-t border-black/[0.04] dark:border-white/[0.06]"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <span className="text-[10px] uppercase font-mono text-ink-400 font-semibold block mb-2">
+                      Recent Activity
+                    </span>
+                    {accTxns.length === 0 ? (
+                      <p className="text-xs text-ink-400 italic">No entries yet.</p>
+                    ) : (
+                      <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                        {accTxns.slice(0, 5).map(t => (
+                          <div key={t.id} className="flex items-center justify-between text-xs py-1 border-b border-black/[0.02] dark:border-white/[0.02] last:border-b-0 font-mono">
+                            <span className="truncate max-w-[130px]">{t.description}</span>
+                            <span className={t.type === 'income' ? 'text-apple-green font-bold' : 'text-ink-800 dark:text-ink-200'}>
+                              {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount, currencySymbol, privacyMode)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           );
         })}
       </div>
 
-      {/* Edit Account Modal */}
-      {editingAccount && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="max-w-md w-full bg-paper-50 dark:bg-paper-dark-card rounded-2xl shadow-ledger-lg border border-paper-400 dark:border-paper-dark-border p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-paper-300 pb-2">
-              <h3 className="font-serif font-bold text-lg text-ink-900 dark:text-ink-100">
-                Edit Ledger Account
-              </h3>
-              <button onClick={() => setEditingAccount(null)} className="p-1 text-ink-400 hover:text-ink-800">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+      {/* Transfer Drawer Modal */}
+      <AnimatePresence>
+        {isTransferOpen && (
+          <TransferModal
+            initialFromId={transferSourceId}
+            onClose={() => {
+              setIsTransferOpen(false);
+              setTransferSourceId(undefined);
+            }}
+          />
+        )}
+      </AnimatePresence>
 
-            <form onSubmit={handleUpdateAccount} className="space-y-3">
-              <div>
-                <label className="block text-xs font-mono text-ink-600 mb-1">Account Name</label>
-                <input
-                  type="text"
-                  required
-                  value={editName}
-                  onChange={e => setEditName(e.target.value)}
-                  className="w-full px-3 py-2 rounded bg-paper-100 dark:bg-paper-dark text-xs border border-paper-300 dark:border-paper-dark-border"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-mono text-ink-600 mb-1">Account Type</label>
-                <select
-                  value={editType}
-                  onChange={e => setEditType(e.target.value as AccountType)}
-                  className="w-full px-3 py-2 rounded bg-paper-100 dark:bg-paper-dark text-xs border border-paper-300 dark:border-paper-dark-border"
-                >
-                  <option value="cash">Cash / UPI / Wallet</option>
-                  <option value="bank">Bank Checking / Savings (Debit)</option>
-                  <option value="credit">Credit Card (Liability)</option>
-                  <option value="savings">Savings Vault / Gold Reserve</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-mono text-ink-600 mb-1">
-                  Starting / Opening Balance ({currencySymbol})
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  inputMode="decimal"
-                  value={editBalance}
-                  onChange={e => setEditBalance(e.target.value)}
-                  className="w-full px-3 py-2 rounded bg-paper-100 dark:bg-paper-dark text-xs font-mono border border-paper-300 dark:border-paper-dark-border"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-mono text-ink-600 mb-1">
-                  Institution / Provider Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. HDFC Bank, SBI, Paytm, Leather Wallet"
-                  value={editInstitution}
-                  onChange={e => setEditInstitution(e.target.value)}
-                  className="w-full px-3 py-2 rounded bg-paper-100 dark:bg-paper-dark text-xs border border-paper-300 dark:border-paper-dark-border"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-mono text-ink-600 mb-1">
-                  Masked Number / Identifier (Optional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. •••• 4821"
-                  value={editMasked}
-                  onChange={e => setEditMasked(e.target.value)}
-                  className="w-full px-3 py-2 rounded bg-paper-100 dark:bg-paper-dark text-xs border border-paper-300 dark:border-paper-dark-border"
-                />
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-3 border-t border-paper-300">
+      {/* Create Account Modal */}
+      <AnimatePresence>
+        {isCreatingAccount && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              className="w-full max-w-md p-6 rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 shadow-apple-float space-y-4"
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-black/[0.06] dark:border-white/[0.08]">
+                <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
+                  Create New Account
+                </h3>
                 <button
-                  type="button"
-                  onClick={() => setEditingAccount(null)}
-                  className="px-3 py-1.5 text-xs text-ink-600 hover:bg-paper-200 rounded"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-1.5 bg-ink-900 text-paper-50 text-xs font-semibold rounded shadow-sm"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Account Confirmation Modal */}
-      {deletingAccount && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="max-w-md w-full bg-paper-50 dark:bg-paper-dark-card rounded-2xl shadow-ledger-lg border border-archival-red/40 p-5 space-y-4">
-            <div className="flex items-center space-x-2 text-archival-red">
-              <AlertTriangle className="w-5 h-5" />
-              <h3 className="font-serif font-bold text-lg">
-                Delete Account: {deletingAccount.name}?
-              </h3>
-            </div>
-
-            <p className="text-xs font-sans text-ink-600 dark:text-ink-400 leading-relaxed">
-              Are you sure you want to remove this account? Any recorded entries linked to this account will remain safely in your past journal.
-            </p>
-
-            <div className="flex justify-end space-x-2 pt-2 border-t border-paper-300">
-              <button
-                type="button"
-                onClick={() => setDeletingAccount(null)}
-                className="px-3.5 py-1.5 text-xs text-ink-600 hover:bg-paper-200 rounded"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteAccountConfirm}
-                className="px-4 py-1.5 bg-archival-red text-paper-50 text-xs font-semibold rounded shadow-sm"
-              >
-                Yes, Delete Account
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* New Account Modal */}
-      {isCreatingAccount && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="max-w-md w-full bg-paper-50 dark:bg-paper-dark-card rounded-2xl shadow-ledger-lg border border-paper-400 dark:border-paper-dark-border p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-paper-300 pb-2">
-              <h3 className="font-serif font-bold text-lg text-ink-900 dark:text-ink-100">
-                Create New Ledger Account
-              </h3>
-              <button onClick={() => setIsCreatingAccount(false)} className="p-1 text-ink-400 hover:text-ink-800">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateAccount} className="space-y-3">
-              <div>
-                <label className="block text-xs font-mono text-ink-600 mb-1">Account Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. SBI Savings, GPay UPI, Cash Envelope, Axis Card"
-                  value={newAccName}
-                  onChange={e => setNewAccName(e.target.value)}
-                  className="w-full px-3 py-2 rounded bg-paper-100 text-xs border border-paper-300"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-mono text-ink-600 mb-1">Account Type</label>
-                <select
-                  value={newAccType}
-                  onChange={e => setNewAccType(e.target.value as AccountType)}
-                  className="w-full px-3 py-2 rounded bg-paper-100 text-xs border border-paper-300"
-                >
-                  <option value="cash">Cash / UPI / Digital Wallet</option>
-                  <option value="bank">Bank Checking / Savings (Debit)</option>
-                  <option value="credit">Credit Card (Liability)</option>
-                  <option value="savings">Savings Vault / Gold Reserve</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-mono text-ink-600 mb-1">
-                  Starting Opening Balance ({currencySymbol})
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  inputMode="decimal"
-                  placeholder="0.00"
-                  value={newAccBalance}
-                  onChange={e => setNewAccBalance(e.target.value)}
-                  className="w-full px-3 py-2 rounded bg-paper-100 text-xs font-mono border border-paper-300"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-mono text-ink-600 mb-1">
-                  Institution / Provider (Optional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. HDFC, SBI, ICICI, Paytm"
-                  value={newAccInstitution}
-                  onChange={e => setNewAccInstitution(e.target.value)}
-                  className="w-full px-3 py-2 rounded bg-paper-100 text-xs border border-paper-300"
-                />
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-3 border-t border-paper-300">
-                <button
-                  type="button"
                   onClick={() => setIsCreatingAccount(false)}
-                  className="px-3 py-1.5 text-xs text-ink-600"
+                  className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-ink-400"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateAccount} className="space-y-3.5">
+                <div>
+                  <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">
+                    Account Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder='e.g. "HDFC Salary", "Cash Pouch", "Paytm Wallet"'
+                    value={newAccName}
+                    onChange={e => setNewAccName(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                    autoFocus
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">
+                      Account Type
+                    </label>
+                    <select
+                      value={newAccType}
+                      onChange={e => setNewAccType(e.target.value as AccountType)}
+                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-xs text-ink-900 dark:text-ink-100 outline-none"
+                    >
+                      <option value="cash">Physical Cash</option>
+                      <option value="bank">Bank Account</option>
+                      <option value="credit">Credit Card</option>
+                      <option value="savings">Sinking Savings</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">
+                      Starting Balance ({currencySymbol})
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      placeholder="0"
+                      value={newAccBalance}
+                      onChange={e => setNewAccBalance(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm font-mono text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsCreatingAccount(false)}
+                    className="px-4 py-2 text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-xs font-semibold bg-apple-blue hover:bg-apple-blue/90 text-white rounded-xl shadow-sm"
+                  >
+                    Create Account
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Account Modal */}
+      <AnimatePresence>
+        {editingAccount && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              className="w-full max-w-md p-6 rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 shadow-apple-float space-y-4"
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-black/[0.06] dark:border-white/[0.08]">
+                <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
+                  Edit Account
+                </h3>
+                <button
+                  onClick={() => setEditingAccount(null)}
+                  className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-ink-400"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveEdit} className="space-y-3.5">
+                <div>
+                  <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">
+                    Account Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editName}
+                    onChange={e => setEditName(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">
+                      Account Type
+                    </label>
+                    <select
+                      value={editType}
+                      onChange={e => setEditType(e.target.value as AccountType)}
+                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-xs text-ink-900 dark:text-ink-100 outline-none"
+                    >
+                      <option value="cash">Physical Cash</option>
+                      <option value="bank">Bank Account</option>
+                      <option value="credit">Credit Card</option>
+                      <option value="savings">Sinking Savings</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">
+                      Base Balance ({currencySymbol})
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      value={editBalance}
+                      onChange={e => setEditBalance(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm font-mono text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingAccount(null)}
+                    className="px-4 py-2 text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-xs font-semibold bg-apple-blue hover:bg-apple-blue/90 text-white rounded-xl shadow-sm"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deletingAccount && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              className="w-full max-w-sm p-6 rounded-3xl bg-white dark:bg-[#1C1C1E] border border-apple-red/30 shadow-apple-float space-y-4"
+            >
+              <div className="w-10 h-10 rounded-2xl bg-apple-red/15 text-apple-red flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+
+              <div>
+                <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
+                  Delete "{deletingAccount.name}"?
+                </h3>
+                <p className="text-xs text-ink-500 mt-1 leading-relaxed">
+                  This account and associated ledger balance will be removed. Existing transactions will remain intact.
+                </p>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2">
+                <button
+                  onClick={() => setDeletingAccount(null)}
+                  className="px-4 py-2 text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl"
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit"
-                  className="px-4 py-1.5 bg-ink-900 text-paper-50 text-xs font-semibold rounded"
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 text-xs font-semibold bg-apple-red hover:bg-apple-red/90 text-white rounded-xl shadow-sm"
                 >
-                  Create Account
+                  Confirm Delete
                 </button>
               </div>
-            </form>
+            </motion.div>
           </div>
-        </div>
-      )}
-
-      {/* Transfer Modal */}
-      {isTransferOpen && (
-        <TransferModal
-          initialFromId={transferSourceId}
-          onClose={() => setIsTransferOpen(false)}
-        />
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 };

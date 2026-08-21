@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import confetti from 'canvas-confetti';
 import {
   CheckCheck,
@@ -38,28 +39,27 @@ export const EndOfDaySummary: React.FC<EndOfDaySummaryProps> = ({ date }) => {
   const handleSealDay = () => {
     if (!note.sealed) {
       sounds.playWaxSealStamp();
-      // Fire celebratory mineral ink confetti
       confetti({
         particleCount: 45,
         spread: 65,
         origin: { y: 0.85 },
-        colors: ['#B83A3A', '#C07D2B', '#8C6D37', '#2A6F4E'],
+        colors: ['#007AFF', '#34C759', '#5856D6', '#FF9500'],
       });
     }
     toggleSealDay(date);
   };
 
   return (
-    <div className="mt-6 p-4 rounded-xl bg-paper-200/60 dark:bg-paper-dark-card border-2 border-paper-300 dark:border-paper-dark-border shadow-sm">
+    <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.06] space-y-3">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         {/* Left: Summary Figures */}
-        <div className="space-y-1.5 flex-1">
+        <div className="space-y-2 flex-1">
           <div className="flex items-center space-x-2">
-            <span className="font-serif font-bold text-xs uppercase tracking-wider text-ink-800 dark:text-ink-200">
+            <span className="font-sans font-bold text-xs uppercase tracking-wider text-ink-900 dark:text-ink-100">
               End-of-Day Ledger Closure
             </span>
             {totals.expense === 0 && totals.count > 0 && (
-              <span className="rubber-stamp stamp-nospend text-[10px]">
+              <span className="px-2 py-0.5 rounded-full bg-apple-green/15 text-apple-green font-mono text-[10px] font-bold">
                 ★ No-Spend Day
               </span>
             )}
@@ -69,7 +69,7 @@ export const EndOfDaySummary: React.FC<EndOfDaySummaryProps> = ({ date }) => {
             {/* Daily Expense */}
             <div>
               <span className="text-ink-500 dark:text-ink-400 font-mono text-[11px] block">Daily Outflow</span>
-              <span className="font-mono font-bold text-sm text-archival-red">
+              <span className="font-mono font-bold text-sm text-apple-red">
                 {formatCurrency(totals.expense, currencySymbol, privacyMode)}
               </span>
             </div>
@@ -78,27 +78,27 @@ export const EndOfDaySummary: React.FC<EndOfDaySummaryProps> = ({ date }) => {
             {totals.income > 0 && (
               <div>
                 <span className="text-ink-500 dark:text-ink-400 font-mono text-[11px] block">Daily Inflow</span>
-                <span className="font-mono font-bold text-sm text-archival-green">
+                <span className="font-mono font-bold text-sm text-apple-green">
                   +{formatCurrency(totals.income, currencySymbol, privacyMode)}
                 </span>
               </div>
             )}
 
             {/* 7-Day Baseline Comparison */}
-            <div className="border-l border-paper-300 dark:border-paper-dark-border pl-4">
+            <div className="border-l border-black/[0.06] dark:border-white/[0.08] pl-4">
               <span className="text-ink-500 dark:text-ink-400 font-mono text-[11px] block">
                 7-Day Rolling Average: {formatCurrency(trailing7DayAvg, currencySymbol, privacyMode)}/day
               </span>
               <div className="flex items-center space-x-1 font-mono text-xs font-semibold">
                 {isBelowAverage ? (
-                  <span className="text-archival-green flex items-center space-x-0.5">
+                  <span className="text-apple-green flex items-center space-x-0.5">
                     <TrendingDown className="w-3 h-3" />
                     <span>
                       {formatCurrency(Math.abs(diffFromAvg), currencySymbol, privacyMode)} below average
                     </span>
                   </span>
                 ) : (
-                  <span className="text-archival-red flex items-center space-x-0.5">
+                  <span className="text-apple-red flex items-center space-x-0.5">
                     <TrendingUp className="w-3 h-3" />
                     <span>
                       {formatCurrency(Math.abs(diffFromAvg), currencySymbol, privacyMode)} above average
@@ -113,31 +113,31 @@ export const EndOfDaySummary: React.FC<EndOfDaySummaryProps> = ({ date }) => {
         {/* Right: Seal Daily Page Button & Status Stamp */}
         <div className="flex items-center space-x-3 w-full md:w-auto justify-end">
           {note.sealed ? (
-            <div className="flex items-center space-x-3">
-              <div className="wax-seal-medallion" title="Archival Seal Verified">
-                §
+            <div className="flex items-center space-x-2.5">
+              <div className="w-7 h-7 rounded-full bg-apple-green/15 text-apple-green flex items-center justify-center font-bold text-xs">
+                ✓
               </div>
-              <div className="flex flex-col items-start space-y-1">
-                <div className="rubber-stamp stamp-sealed text-xs">
-                  ✓ SEALED & AUDITED
-                </div>
+              <div className="flex flex-col items-start">
+                <span className="text-xs font-semibold text-apple-green">
+                  Page Folio Sealed
+                </span>
                 <button
                   onClick={handleSealDay}
-                  className="text-[10px] font-mono text-ink-400 hover:text-ink-700 underline"
-                  title="Unseal Page"
+                  className="text-[10px] text-ink-400 hover:text-ink-700 dark:hover:text-ink-200 underline"
                 >
-                  Unseal Page
+                  Reopen for edits
                 </button>
               </div>
             </div>
           ) : (
-            <button
+            <motion.button
+              whileTap={{ scale: 0.95 }}
               onClick={handleSealDay}
-              className="w-full md:w-auto px-4 py-2 rounded-lg bg-archival-green hover:bg-archival-green/90 text-paper-50 font-sans text-xs font-semibold shadow-sm flex items-center justify-center space-x-1.5 transition-all active:scale-95 min-h-[38px]"
+              className="px-4 py-2 rounded-xl bg-apple-green hover:bg-apple-green/90 text-white font-sans text-xs font-semibold shadow-sm flex items-center space-x-1.5 transition-all"
             >
               <CheckCheck className="w-4 h-4" />
               <span>Seal Today's Page</span>
-            </button>
+            </motion.button>
           )}
         </div>
       </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   AlertCircle,
   BarChart3,
@@ -29,7 +30,7 @@ import {
   getCategoryBreakdown,
   getMonthSummary,
 } from '../../lib/accounting';
-import { formatCurrency, getTodayString } from '../../lib/utils';
+import { formatCurrency, getTodayString, cn } from '../../lib/utils';
 import { PrintableJournalModal } from '../common/PrintableJournalModal';
 import { MoneyHeatmap } from './MoneyHeatmap';
 import { RecurringItem } from '../../types';
@@ -53,8 +54,8 @@ export const ChaptersView: React.FC = () => {
     currentDiaryDate.slice(0, 7)
   );
 
-  // Active Folio Leaf Tab
-  const [activeTab, setActiveTab] = useState<'overview' | 'heatmap' | 'envelopes'>('overview');
+  // Active Tab
+  const [activeTab, setActiveTab] = useState<'overview' | 'envelopes' | 'heatmap' | 'subscriptions'>('overview');
 
   const [isAddRecurringOpen, setIsAddRecurringOpen] = useState(false);
   const [editingRecurring, setEditingRecurring] = useState<RecurringItem | null>(null);
@@ -79,7 +80,7 @@ export const ChaptersView: React.FC = () => {
 
   // Safe to spend calculations
   const fixedBills = recurring.reduce((sum, r) => sum + r.amount, 0);
-  const savingsTarget = summary.totalIncome * 0.2; // 20% savings target
+  const savingsTarget = summary.totalIncome * 0.2;
   const daysRemainingInMonth = summary.totalDaysInMonth - summary.daysElapsed;
 
   const safeToSpend = calculateSafeToSpend(
@@ -156,568 +157,535 @@ export const ChaptersView: React.FC = () => {
   const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 sm:px-6 space-y-6">
-      {/* Chapter Month Navigation Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-paper-50 dark:bg-paper-dark-card p-6 rounded-2xl border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger">
-        <div>
-          <div className="flex items-center space-x-2">
-            <span className="text-xs uppercase font-mono tracking-widest text-archival-ochre font-bold">
+    <div className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6">
+      {/* Apple-Grade Month Hero Card */}
+      <div className="apple-glass-card rounded-3xl p-6 sm:p-8 space-y-5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-xs uppercase font-mono tracking-wider text-ink-400 dark:text-ink-500 font-semibold block">
               Monthly Financial Chapter
             </span>
-            <span className="text-paper-400">•</span>
-            <span className="text-xs font-mono text-ink-500">
-              Volume {selectedYearMonth.replace('-', '.')}
-            </span>
-          </div>
-          <h1 className="font-serif font-bold text-3xl sm:text-4xl text-ink-900 dark:text-ink-100 mt-1">
-            {monthName}
-          </h1>
-        </div>
-
-        {/* Month Selector Controls & Print Button */}
-        <div className="flex items-center space-x-2 flex-wrap gap-y-2">
-          <button
-            onClick={() => setIsPrintModalOpen(true)}
-            className="px-3.5 py-1.5 rounded-lg bg-paper-200 hover:bg-paper-300 dark:bg-paper-dark dark:hover:bg-paper-dark-card text-ink-700 dark:text-ink-300 text-xs font-mono flex items-center space-x-1.5 border border-paper-300 dark:border-paper-dark-border shadow-sm transition-all"
-            aria-label="Print Monthly Chapter PDF"
-          >
-            <Printer className="w-3.5 h-3.5 text-archival-blue" />
-            <span>Print Chapter</span>
-          </button>
-
-          <div className="flex items-center space-x-2 bg-paper-100 dark:bg-paper-dark p-1.5 rounded-lg border border-paper-300 dark:border-paper-dark-border">
-            <button
-              onClick={handlePrevMonth}
-              className="p-1.5 rounded hover:bg-paper-200 dark:hover:bg-paper-dark-card text-ink-700 dark:text-ink-300"
-              aria-label="Previous Month Chapter"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="font-mono text-xs font-semibold px-3 text-ink-900 dark:text-ink-100">
+            <h1 className="font-sans font-bold text-2xl sm:text-3xl text-ink-900 dark:text-ink-100 tracking-tight mt-0.5">
               {monthName}
-            </span>
+            </h1>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 bg-black/5 dark:bg-white/10 p-1 rounded-2xl">
+              <button
+                onClick={handlePrevMonth}
+                className="p-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-ink-700 dark:text-ink-300 transition-colors"
+                aria-label="Previous Month"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="font-mono text-xs font-semibold px-2 text-ink-900 dark:text-ink-100">
+                {selectedYearMonth}
+              </span>
+              <button
+                onClick={handleNextMonth}
+                className="p-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-ink-700 dark:text-ink-300 transition-colors"
+                aria-label="Next Month"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
             <button
-              onClick={handleNextMonth}
-              className="p-1.5 rounded hover:bg-paper-200 dark:hover:bg-paper-dark-card text-ink-700 dark:text-ink-300"
-              aria-label="Next Month Chapter"
+              onClick={() => setIsPrintModalOpen(true)}
+              className="p-2 rounded-xl bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/15 text-ink-700 dark:text-ink-300 transition-colors"
+              title="Print Monthly Chapter"
             >
-              <ChevronRight className="w-4 h-4" />
+              <Printer className="w-4 h-4" />
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Tactile Folio Leaf Tabs */}
-      <div className="flex items-center space-x-1.5 p-1.5 bg-paper-100 dark:bg-paper-dark rounded-xl border border-paper-300 dark:border-paper-dark-border w-fit overflow-x-auto">
-        <button
-          onClick={() => setActiveTab('overview')}
-          className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
-            activeTab === 'overview'
-              ? 'bg-paper-50 dark:bg-paper-dark-card text-ink-900 dark:text-ink-100 shadow-sm border border-paper-300 dark:border-paper-dark-border'
-              : 'text-ink-500 hover:text-ink-800 dark:hover:text-ink-200 hover:bg-paper-200/50'
-          }`}
-        >
-          <Sparkles className="w-3.5 h-3.5 text-archival-ochre" />
-          <span>Chapter Vitals & Compass</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('heatmap')}
-          className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
-            activeTab === 'heatmap'
-              ? 'bg-paper-50 dark:bg-paper-dark-card text-ink-900 dark:text-ink-100 shadow-sm border border-paper-300 dark:border-paper-dark-border'
-              : 'text-ink-500 hover:text-ink-800 dark:hover:text-ink-200 hover:bg-paper-200/50'
-          }`}
-        >
-          <Calendar className="w-3.5 h-3.5 text-archival-blue" />
-          <span>31-Day Cashflow Heatmap</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('envelopes')}
-          className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
-            activeTab === 'envelopes'
-              ? 'bg-paper-50 dark:bg-paper-dark-card text-ink-900 dark:text-ink-100 shadow-sm border border-paper-300 dark:border-paper-dark-border'
-              : 'text-ink-500 hover:text-ink-800 dark:hover:text-ink-200 hover:bg-paper-200/50'
-          }`}
-        >
-          <Layers className="w-3.5 h-3.5 text-archival-green" />
-          <span>Envelopes & Recurring Radar</span>
-        </button>
-      </div>
-
-      {/* TAB 1: Chapter Vitals & Compass */}
-      {activeTab === 'overview' && (
-        <div className="space-y-6 animate-in fade-in duration-200">
-          {/* Chapter Macro Vitals Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Total Inflow */}
-            <div className="p-4 rounded-xl bg-paper-50 dark:bg-paper-dark-card border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-mono uppercase text-ink-500">Total Income</span>
-                <TrendingUp className="w-4 h-4 text-archival-green" />
-              </div>
-              <span className="font-mono font-bold text-xl text-archival-green block">
-                +{formatCurrency(summary.totalIncome, currencySymbol, privacyMode)}
-              </span>
-              <span className="text-[10px] font-mono text-ink-400 mt-1 block">
-                Verified Inflow
-              </span>
-            </div>
-
-            {/* Total Outflow */}
-            <div className="p-4 rounded-xl bg-paper-50 dark:bg-paper-dark-card border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-mono uppercase text-ink-500">Total Outflow</span>
-                <TrendingDown className="w-4 h-4 text-archival-red" />
-              </div>
-              <span className="font-mono font-bold text-xl text-archival-red block">
-                -{formatCurrency(summary.totalExpense, currencySymbol, privacyMode)}
-              </span>
-              <span className="text-[10px] font-mono text-ink-400 mt-1 block">
-                {summary.avgDailySpend > 0
-                  ? `Avg ${formatCurrency(summary.avgDailySpend, currencySymbol, privacyMode)}/day`
-                  : 'No spend recorded'}
-              </span>
-            </div>
-
-            {/* Net Savings & Rate */}
-            <div className="p-4 rounded-xl bg-paper-50 dark:bg-paper-dark-card border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-mono uppercase text-ink-500">Net Retained</span>
-                <PiggyBank className="w-4 h-4 text-archival-ochre" />
-              </div>
-              <span className="font-mono font-bold text-xl text-ink-900 dark:text-ink-100 block">
-                {formatCurrency(summary.netSavings, currencySymbol, privacyMode)}
-              </span>
-              <span className="text-[10px] font-mono text-archival-ochre font-semibold mt-1 block">
-                {summary.savingsRate}% Savings Rate
-              </span>
-            </div>
-
-            {/* No-Spend Days */}
-            <div className="p-4 rounded-xl bg-paper-50 dark:bg-paper-dark-card border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-mono uppercase text-ink-500">No-Spend Days</span>
-                <span className="text-archival-ochre font-bold">★</span>
-              </div>
-              <span className="font-mono font-bold text-xl text-ink-900 dark:text-ink-100 block">
-                {summary.noSpendDaysCount} Days
-              </span>
-              <span className="text-[10px] font-mono text-ink-400 mt-1 block">
-                {summary.biggestExpense
-                  ? `Max: ${formatCurrency(summary.biggestExpense.amount, currencySymbol, privacyMode)}`
-                  : 'Zero spend'}
-              </span>
-            </div>
+        {/* Glanceable Metrics (Income / Expense / Net Balance) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+          <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]">
+            <span className="text-[11px] font-mono text-ink-500 dark:text-ink-400 block">Total Monthly Inflow</span>
+            <span className="font-mono font-bold text-xl sm:text-2xl text-apple-green block mt-0.5">
+              +{formatCurrency(summary.totalIncome, currencySymbol, privacyMode)}
+            </span>
           </div>
 
-          {/* Safe-to-Spend Compass Card */}
-          <div className="p-6 rounded-2xl bg-paper-50 dark:bg-paper-dark-card border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger space-y-4">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-paper-300 dark:border-paper-dark-border">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-archival-ochre/15 text-archival-ochre flex items-center justify-center">
-                  <Sparkles className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-serif font-bold text-lg text-ink-900 dark:text-ink-100">
-                    Safe-to-Spend Compass
-                  </h3>
-                  <p className="text-xs font-mono text-ink-500">
-                    Dynamic daily allowance after fixed commitments & 20% savings cushion
-                  </p>
-                </div>
-              </div>
+          <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]">
+            <span className="text-[11px] font-mono text-ink-500 dark:text-ink-400 block">Total Outflow</span>
+            <span className="font-mono font-bold text-xl sm:text-2xl text-apple-red block mt-0.5">
+              -{formatCurrency(summary.totalExpense, currencySymbol, privacyMode)}
+            </span>
+          </div>
 
-              <div className="text-right">
-                <span className="text-[10px] font-mono uppercase text-ink-400 block">Safe Daily Allowance</span>
-                <span className="font-mono font-bold text-2xl text-archival-green">
-                  {formatCurrency(safeToSpend.safeDailySpend, currencySymbol, privacyMode)}
-                  <span className="text-xs font-normal text-ink-500">/day</span>
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-mono">
-              <div className="p-3.5 rounded-lg bg-paper-100 dark:bg-paper-dark border border-paper-300 dark:border-paper-dark-border">
-                <span className="text-[10px] text-ink-400 block">Discretionary Runway Remaining</span>
-                <span className="font-bold text-base text-ink-800 dark:text-ink-200 mt-0.5 block">
-                  {formatCurrency(safeToSpend.remainingAllowance, currencySymbol, privacyMode)}
-                </span>
-              </div>
-
-              <div className="p-3.5 rounded-lg bg-paper-100 dark:bg-paper-dark border border-paper-300 dark:border-paper-dark-border">
-                <span className="text-[10px] text-ink-400 block">Fixed Commitments (Monthly)</span>
-                <span className="font-bold text-base text-ink-800 dark:text-ink-200 mt-0.5 block">
-                  {formatCurrency(fixedBills, currencySymbol, privacyMode)}
-                </span>
-              </div>
-
-              <div className="p-3.5 rounded-lg bg-paper-100 dark:bg-paper-dark border border-paper-300 dark:border-paper-dark-border">
-                <span className="text-[10px] text-ink-400 block">Days Left in Chapter</span>
-                <span className="font-bold text-base text-ink-800 dark:text-ink-200 mt-0.5 block">
-                  {daysRemainingInMonth > 0 ? `${daysRemainingInMonth} days remaining` : 'Chapter complete'}
-                </span>
-              </div>
-            </div>
+          <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]">
+            <span className="text-[11px] font-mono text-ink-500 dark:text-ink-400 block">Net Monthly Balance</span>
+            <span className={`font-mono font-bold text-xl sm:text-2xl block mt-0.5 ${summary.netSavings >= 0 ? 'text-apple-blue' : 'text-apple-red'}`}>
+              {summary.netSavings >= 0 ? '+' : ''}{formatCurrency(summary.netSavings, currencySymbol, privacyMode)}
+            </span>
           </div>
         </div>
-      )}
 
-      {/* TAB 2: 31-Day Velocity Heatmap */}
-      {activeTab === 'heatmap' && (
-        <div className="space-y-4 animate-in fade-in duration-200">
-          <MoneyHeatmap yearMonthStr={selectedYearMonth} />
-        </div>
-      )}
-
-      {/* TAB 3: Category Envelopes & Recurring Radar */}
-      {activeTab === 'envelopes' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-200">
-          {/* Category Budget Envelopes */}
-          <div className="lg:col-span-2 p-6 rounded-2xl bg-paper-50 dark:bg-paper-dark-card border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger">
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-paper-300 dark:border-paper-dark-border">
-              <div>
-                <h3 className="font-serif font-bold text-lg text-ink-900 dark:text-ink-100">
-                  Category Ledger Envelopes
-                </h3>
-                <p className="text-xs font-mono text-ink-500">
-                  Total spent vs. monthly discretionary budget limits
-                </p>
-              </div>
-              <span className="text-xs font-mono font-bold text-ink-600 dark:text-ink-400">
-                {categoryBreakdowns.length} Envelopes
-              </span>
-            </div>
-
-            <div className="space-y-4">
-              {categoryBreakdowns.map(item => {
-                const pct = item.budget > 0 ? Math.min(100, (item.totalSpent / item.budget) * 100) : item.percentage;
-                return (
-                  <div key={item.category.id} className="space-y-1.5 p-3 rounded-xl bg-paper-100/60 dark:bg-paper-dark border border-paper-300/60 dark:border-paper-dark-border">
-                    <div className="flex items-center justify-between text-xs font-mono">
-                      <div className="flex items-center space-x-2">
-                        <span
-                          className="w-3 h-3 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: item.category.color }}
-                        />
-                        <span className="font-semibold text-ink-900 dark:text-ink-100">
-                          {item.category.name}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        <span className="font-bold text-ink-900 dark:text-ink-100">
-                          {formatCurrency(item.totalSpent, currencySymbol, privacyMode)}
-                        </span>
-                        {item.budget > 0 && (
-                          <span className="text-ink-400 text-[11px]">
-                            / {formatCurrency(item.budget, currencySymbol, privacyMode)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Ink Progress Bar */}
-                    <div className="h-2.5 w-full rounded-full bg-paper-200 dark:bg-paper-dark-border overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{
-                          width: `${pct}%`,
-                          backgroundColor: item.isOverBudget ? '#B83A3A' : item.category.color,
-                        }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Recurring Commitments Radar */}
-          <div className="p-6 rounded-2xl bg-paper-50 dark:bg-paper-dark-card border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-4 pb-2 border-b border-paper-300 dark:border-paper-dark-border">
-                <h3 className="font-serif font-bold text-base text-ink-900 dark:text-ink-100 flex items-center space-x-1.5">
-                  <Repeat className="w-4 h-4 text-archival-brass" />
-                  <span>Scheduled Bills</span>
-                </h3>
+        {/* Sub-View Tabs with Fluid Liquid Spring Pill and Instinctive Gradient Edge Fades */}
+        <div className="flex items-center justify-start sm:justify-center overflow-x-auto no-scrollbar scroll-fade-x mask-fade-x sm:mask-none px-1 pb-1">
+          <div className="apple-segmented-picker relative flex min-w-max">
+            {(
+              [
+                { id: 'overview', label: 'Vitals', fullLabel: 'Monthly Vitals' },
+                { id: 'envelopes', label: 'Envelopes', fullLabel: 'Category Envelopes' },
+                { id: 'heatmap', label: 'Heatmap', fullLabel: 'Calendar Heatmap' },
+                { id: 'subscriptions', label: `Recurring (${recurring.length})`, fullLabel: `Subscriptions (${recurring.length})` },
+              ] as const
+            ).map(tab => {
+              const isActive = activeTab === tab.id;
+              return (
                 <button
-                  onClick={() => setIsAddRecurringOpen(true)}
-                  className="px-2.5 py-1 rounded bg-paper-200 hover:bg-paper-300 dark:bg-paper-dark text-ink-800 dark:text-ink-200 text-xs font-mono flex items-center space-x-1 border border-paper-300 dark:border-paper-dark-border"
-                  aria-label="Add Recurring Item"
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    "relative px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-medium transition-colors z-10 whitespace-nowrap",
+                    isActive
+                      ? "text-ink-900 dark:text-white font-semibold"
+                      : "text-ink-500 hover:text-ink-800 dark:text-ink-400 dark:hover:text-ink-200"
+                  )}
                 >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Add Bill</span>
+                  {isActive && (
+                    <motion.div
+                      layoutId="active-chapter-tab-indicator"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                      className="absolute inset-0 bg-white dark:bg-zinc-800 rounded-xl shadow-sm -z-10"
+                    />
+                  )}
+                  <span className="sm:hidden">{tab.label}</span>
+                  <span className="hidden sm:inline">{tab.fullLabel}</span>
                 </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {/* Tab 1: Overview & Safe-to-Spend Compass */}
+        {activeTab === 'overview' && (
+          <motion.div
+            key="overview"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.16 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-5"
+          >
+          {/* Safe-to-Spend Compass Card */}
+          <div className="apple-inset-group shadow-apple-card p-6 space-y-4">
+            <div className="flex items-center space-x-2.5 pb-3 border-b border-black/[0.04] dark:border-white/[0.06]">
+              <Sparkles className="w-5 h-5 text-apple-blue" />
+              <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
+                Safe-to-Spend Compass
+              </h3>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <span className="text-xs font-mono text-ink-500 block">Daily Discretionary Allowance:</span>
+                <span className="font-mono font-bold text-3xl text-apple-blue block mt-1">
+                  {formatCurrency(safeToSpend.safeDailySpend, currencySymbol, privacyMode)}
+                  <span className="text-xs font-normal text-ink-500"> /day</span>
+                </span>
               </div>
 
-              {recurring.length === 0 ? (
-                <div className="py-8 text-center text-ink-500 space-y-2">
-                  <Repeat className="w-8 h-8 mx-auto opacity-40" />
-                  <p className="text-xs font-serif italic">No recurring commitments logged yet.</p>
-                  <button
-                    onClick={() => setIsAddRecurringOpen(true)}
-                    className="text-[11px] font-mono text-archival-ochre underline font-semibold"
-                  >
-                    + Add rent, WiFi, or SIP
-                  </button>
+              <div className="p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06] space-y-1.5 text-xs font-mono">
+                <div className="flex justify-between">
+                  <span className="text-ink-500">Remaining Allowance:</span>
+                  <span className="font-bold text-ink-900 dark:text-ink-100">
+                    {formatCurrency(safeToSpend.remainingAllowance, currencySymbol, privacyMode)}
+                  </span>
                 </div>
-              ) : (
-                <div className="space-y-2.5">
-                  {recurring.map(rec => (
-                    <div
-                      key={rec.id}
-                      className="p-3 rounded-lg bg-paper-100 dark:bg-paper-dark border border-paper-300 dark:border-paper-dark-border flex items-center justify-between text-xs group hover:border-paper-400 transition-colors"
-                    >
-                      <div>
-                        <span className="font-semibold text-ink-900 dark:text-ink-100 block">
-                          {rec.name}
-                        </span>
-                        <span className="text-[10px] font-mono text-ink-400">
-                          Due Day {rec.dayOfMonth} of month
-                        </span>
-                      </div>
+                <div className="flex justify-between">
+                  <span className="text-ink-500">Committed Bills & Rent:</span>
+                  <span className="text-apple-red">-{formatCurrency(fixedBills, currencySymbol, privacyMode)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-ink-500">20% Goal Target:</span>
+                  <span className="text-apple-orange">-{formatCurrency(savingsTarget, currencySymbol, privacyMode)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-ink-500">Days Remaining:</span>
+                  <span className="font-bold">{daysRemainingInMonth} days</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
-                      <div className="flex items-center space-x-2">
-                        <span className="font-mono font-bold text-archival-red">
-                          {formatCurrency(rec.amount, currencySymbol, privacyMode)}
-                        </span>
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1">
-                          <button
-                            onClick={() => handleOpenEditRecurring(rec)}
-                            className="p-1 text-ink-400 hover:text-ink-800 dark:hover:text-ink-200"
-                            aria-label="Edit Recurring Item"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => deleteRecurring(rec.id)}
-                            className="p-1 text-ink-400 hover:text-archival-red"
-                            aria-label="Delete Recurring Item"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
+          {/* Month Burn Pace & Activity Summary */}
+          <div className="apple-inset-group shadow-apple-card p-6 space-y-4">
+            <div className="flex items-center space-x-2.5 pb-3 border-b border-black/[0.04] dark:border-white/[0.06]">
+              <Clock className="w-5 h-5 text-apple-orange" />
+              <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
+                Pace & Velocity
+              </h3>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <span className="text-xs font-mono text-ink-500 block">Average Daily Burn Rate:</span>
+                <span className="font-mono font-bold text-2xl text-ink-900 dark:text-ink-100 block mt-1">
+                  {formatCurrency(summary.avgDailySpend, currencySymbol, privacyMode)}
+                  <span className="text-xs font-normal text-ink-500"> /day</span>
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06] space-y-2">
+                <span className="text-xs font-semibold text-ink-800 dark:text-ink-200 block">
+                  Top Spending Categories:
+                </span>
+                <div className="space-y-1.5">
+                  {categoryBreakdowns.slice(0, 3).map(c => (
+                    <div key={c.category.id} className="flex items-center justify-between text-xs font-mono">
+                      <span className="text-ink-600 dark:text-ink-400">{c.category.name}</span>
+                      <span className="font-bold text-ink-900 dark:text-ink-100">
+                        {formatCurrency(c.totalSpent, currencySymbol, privacyMode)} ({c.percentage.toFixed(0)}%)
+                      </span>
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
-
-            <div className="pt-4 border-t border-paper-300 dark:border-paper-dark-border mt-6 text-xs font-mono text-ink-600 dark:text-ink-400 text-center font-bold">
-              Total Fixed: {formatCurrency(fixedBills, currencySymbol, privacyMode)} / month
+              </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
+
+      {/* Tab 2: Category Envelopes */}
+      {activeTab === 'envelopes' && (
+        <motion.div
+          key="envelopes"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.16 }}
+          className="apple-inset-group shadow-apple-card p-6 space-y-4"
+        >
+          <div className="flex items-center justify-between pb-3 border-b border-black/[0.04] dark:border-white/[0.06]">
+            <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
+              Category Envelope Breakdown
+            </h3>
+            <span className="text-xs font-mono text-ink-500">
+              {categoryBreakdowns.length} active spending envelopes
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {categoryBreakdowns.map(cat => (
+              <div
+                key={cat.category.id}
+                className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06] space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: cat.category.color }}
+                    />
+                    <span className="font-semibold text-xs text-ink-900 dark:text-ink-100">
+                      {cat.category.name}
+                    </span>
+                  </div>
+                  <span className="font-mono font-bold text-xs text-ink-900 dark:text-ink-100">
+                    {formatCurrency(cat.totalSpent, currencySymbol, privacyMode)}
+                  </span>
+                </div>
+
+                <div className="h-2 w-full rounded-full bg-black/5 dark:bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${cat.percentage}%`,
+                      backgroundColor: cat.category.color,
+                    }}
+                  />
+                </div>
+
+                <div className="flex justify-between text-[10px] font-mono text-ink-400">
+                  <span>{cat.transactionCount} transactions</span>
+                  <span>{cat.percentage.toFixed(1)}% of budget</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Tab 3: Heatmap */}
+      {activeTab === 'heatmap' && (
+        <motion.div
+          key="heatmap"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.16 }}
+          className="apple-inset-group shadow-apple-card p-6 space-y-4"
+        >
+          <div className="pb-3 border-b border-black/[0.04] dark:border-white/[0.06]">
+            <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
+              Monthly Daily Spending Rhythm
+            </h3>
+          </div>
+          <MoneyHeatmap yearMonthStr={selectedYearMonth} />
+        </motion.div>
+      )}
+
+      {/* Tab 4: Subscriptions & Recurring Radar */}
+      {activeTab === 'subscriptions' && (
+        <motion.div
+          key="subscriptions"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.16 }}
+          className="apple-inset-group shadow-apple-card p-6 space-y-4"
+        >
+          <div className="flex items-center justify-between pb-3 border-b border-black/[0.04] dark:border-white/[0.06]">
+            <div>
+              <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
+                Recurring Commitments & Subscriptions
+              </h3>
+              <p className="text-xs font-mono text-ink-500 mt-0.5">
+                Total monthly commitment: {formatCurrency(fixedBills, currencySymbol, privacyMode)}
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsAddRecurringOpen(true)}
+              className="px-3 py-1.5 rounded-xl bg-apple-blue hover:bg-apple-blue/90 text-white text-xs font-semibold flex items-center space-x-1"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Recurring</span>
+            </button>
+          </div>
+
+          <div className="divide-y divide-black/[0.04] dark:divide-white/[0.06]">
+            {recurring.map(item => (
+              <div key={item.id} className="py-3 flex items-center justify-between">
+                <div>
+                  <span className="font-semibold text-xs text-ink-900 dark:text-ink-100 block">
+                    {item.name}
+                  </span>
+                  <span className="text-[11px] font-mono text-ink-500">
+                    Due every month on day {item.dayOfMonth}
+                  </span>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  <span className="font-mono font-bold text-sm text-apple-red">
+                    -{formatCurrency(item.amount, currencySymbol, privacyMode)}
+                  </span>
+                  <button
+                    onClick={() => handleOpenEditRecurring(item)}
+                    className="p-1 text-ink-400 hover:text-ink-900 dark:hover:text-ink-100"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => deleteRecurring(item.id)}
+                    className="p-1 text-ink-400 hover:text-apple-red"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
 
       {/* Add Recurring Modal */}
-      {isAddRecurringOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="max-w-md w-full bg-paper-50 dark:bg-paper-dark-card rounded-2xl shadow-ledger-lg border-2 border-paper-300 dark:border-paper-dark-border p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-paper-300 dark:border-paper-dark-border">
-              <h3 className="font-serif font-bold text-lg text-ink-900 dark:text-ink-100">
-                Add Scheduled Recurring Bill
-              </h3>
-              <button
-                onClick={() => setIsAddRecurringOpen(false)}
-                className="p-1 text-ink-400 hover:text-ink-900 dark:hover:text-ink-100"
-                aria-label="Close add bill modal"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateRecurring} className="space-y-4 text-xs font-mono">
-              <div>
-                <label className="block text-ink-600 dark:text-ink-400 mb-1">
-                  Commitment Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Rent, Fiber Broadband, Netflix, SIP"
-                  value={recName}
-                  onChange={e => setRecName(e.target.value)}
-                  className="w-full px-3 py-2 rounded bg-paper-100 dark:bg-paper-dark text-xs border border-paper-300 dark:border-paper-dark-border"
-                  required
-                />
+      <AnimatePresence>
+        {isAddRecurringOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              className="w-full max-w-md p-6 rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 shadow-apple-float space-y-4"
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-black/[0.06] dark:border-white/[0.08]">
+                <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
+                  New Recurring Subscription
+                </h3>
+                <button
+                  onClick={() => setIsAddRecurringOpen(false)}
+                  className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-ink-400"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              <div>
-                <label className="block text-ink-600 dark:text-ink-400 mb-1">
-                  Monthly Amount ({currencySymbol})
-                </label>
-                <input
-                  type="number"
-                  placeholder="e.g. 15000"
-                  inputMode="decimal"
-                  value={recAmount}
-                  onChange={e => setRecAmount(e.target.value)}
-                  className="w-full px-3 py-2 rounded bg-paper-100 dark:bg-paper-dark text-xs border border-paper-300 dark:border-paper-dark-border"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+              <form onSubmit={handleCreateRecurring} className="space-y-3.5">
                 <div>
-                  <label className="block text-ink-600 dark:text-ink-400 mb-1">
-                    Day of Month
+                  <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">
+                    Name / Service
                   </label>
                   <input
-                    type="number"
-                    min="1"
-                    max="31"
-                    value={recDay}
-                    onChange={e => setRecDay(e.target.value)}
-                    className="w-full px-3 py-2 rounded bg-paper-100 dark:bg-paper-dark text-xs border border-paper-300 dark:border-paper-dark-border"
+                    type="text"
+                    required
+                    placeholder='e.g. "Rent", "Netflix", "Broadband", "Gym"'
+                    value={recName}
+                    onChange={e => setRecName(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                    autoFocus
                   />
                 </div>
 
-                <div>
-                  <label className="block text-ink-600 dark:text-ink-400 mb-1">
-                    Account
-                  </label>
-                  <select
-                    value={recAccountId}
-                    onChange={e => setRecAccountId(e.target.value)}
-                    className="w-full px-3 py-2 rounded bg-paper-100 dark:bg-paper-dark text-xs border border-paper-300 dark:border-paper-dark-border"
-                  >
-                    {accounts.map(a => (
-                      <option key={a.id} value={a.id}>
-                        {a.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">
+                      Monthly Amount ({currencySymbol})
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      required
+                      placeholder="0"
+                      value={recAmount}
+                      onChange={e => setRecAmount(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm font-mono text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                    />
+                  </div>
 
-              <div className="flex justify-end space-x-2 pt-3 border-t border-paper-300 dark:border-paper-dark-border">
-                <button
-                  type="button"
-                  onClick={() => setIsAddRecurringOpen(false)}
-                  className="px-3.5 py-1.5 text-xs text-ink-600 hover:bg-paper-200 rounded"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-1.5 bg-ink-900 text-paper-50 dark:bg-paper-100 dark:text-ink-900 text-xs font-semibold rounded shadow-sm"
-                >
-                  Save Bill
-                </button>
-              </div>
-            </form>
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">
+                      Day of Month (1-31)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="31"
+                      value={recDay}
+                      onChange={e => setRecDay(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm font-mono text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddRecurringOpen(false)}
+                    className="px-4 py-2 text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-xs font-semibold bg-apple-blue hover:bg-apple-blue/90 text-white rounded-xl shadow-sm"
+                  >
+                    Save Subscription
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* Edit Recurring Modal */}
-      {editingRecurring && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="max-w-md w-full bg-paper-50 dark:bg-paper-dark-card rounded-2xl shadow-ledger-lg border-2 border-paper-300 dark:border-paper-dark-border p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-paper-300 dark:border-paper-dark-border">
-              <h3 className="font-serif font-bold text-lg text-ink-900 dark:text-ink-100">
-                Edit Scheduled Recurring Bill
-              </h3>
-              <button
-                onClick={() => setEditingRecurring(null)}
-                className="p-1 text-ink-400 hover:text-ink-900 dark:hover:text-ink-100"
-                aria-label="Close edit bill modal"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveEditRecurring} className="space-y-4 text-xs font-mono">
-              <div>
-                <label className="block text-ink-600 dark:text-ink-400 mb-1">
-                  Commitment Name
-                </label>
-                <input
-                  type="text"
-                  value={editRecName}
-                  onChange={e => setEditRecName(e.target.value)}
-                  className="w-full px-3 py-2 rounded bg-paper-100 dark:bg-paper-dark text-xs border border-paper-300 dark:border-paper-dark-border"
-                  required
-                />
+      <AnimatePresence>
+        {editingRecurring && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              className="w-full max-w-md p-6 rounded-3xl bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 shadow-apple-float space-y-4"
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-black/[0.06] dark:border-white/[0.08]">
+                <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
+                  Edit Subscription
+                </h3>
+                <button
+                  onClick={() => setEditingRecurring(null)}
+                  className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-ink-400"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              <div>
-                <label className="block text-ink-600 dark:text-ink-400 mb-1">
-                  Monthly Amount ({currencySymbol})
-                </label>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  value={editRecAmount}
-                  onChange={e => setEditRecAmount(e.target.value)}
-                  className="w-full px-3 py-2 rounded bg-paper-100 dark:bg-paper-dark text-xs border border-paper-300 dark:border-paper-dark-border"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+              <form onSubmit={handleSaveEditRecurring} className="space-y-3.5">
                 <div>
-                  <label className="block text-ink-600 dark:text-ink-400 mb-1">
-                    Day of Month
+                  <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">
+                    Name / Service
                   </label>
                   <input
-                    type="number"
-                    min="1"
-                    max="31"
-                    value={editRecDay}
-                    onChange={e => setEditRecDay(e.target.value)}
-                    className="w-full px-3 py-2 rounded bg-paper-100 dark:bg-paper-dark text-xs border border-paper-300 dark:border-paper-dark-border"
+                    type="text"
+                    required
+                    value={editRecName}
+                    onChange={e => setEditRecName(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-ink-600 dark:text-ink-400 mb-1">
-                    Account
-                  </label>
-                  <select
-                    value={editRecAccountId}
-                    onChange={e => setEditRecAccountId(e.target.value)}
-                    className="w-full px-3 py-2 rounded bg-paper-100 dark:bg-paper-dark text-xs border border-paper-300 dark:border-paper-dark-border"
-                  >
-                    {accounts.map(a => (
-                      <option key={a.id} value={a.id}>
-                        {a.name}
-                      </option>
-                    ))}
-                  </select>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">
+                      Monthly Amount ({currencySymbol})
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      required
+                      value={editRecAmount}
+                      onChange={e => setEditRecAmount(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm font-mono text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">
+                      Day of Month (1-31)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="31"
+                      value={editRecDay}
+                      onChange={e => setEditRecDay(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm font-mono text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex justify-end space-x-2 pt-3 border-t border-paper-300 dark:border-paper-dark-border">
-                <button
-                  type="button"
-                  onClick={() => setEditingRecurring(null)}
-                  className="px-3.5 py-1.5 text-xs text-ink-600 hover:bg-paper-200 rounded"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-1.5 bg-ink-900 text-paper-50 dark:bg-paper-100 dark:text-ink-900 text-xs font-semibold rounded shadow-sm"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
+                <div className="flex justify-end space-x-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingRecurring(null)}
+                    className="px-4 py-2 text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-xs font-semibold bg-apple-blue hover:bg-apple-blue/90 text-white rounded-xl shadow-sm"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
-      {/* Printable Modal */}
-      {isPrintModalOpen && (
-        <PrintableJournalModal
-          defaultScope="month"
-          onClose={() => setIsPrintModalOpen(false)}
-        />
-      )}
+      {/* Printable Chapter Modal */}
+      <AnimatePresence>
+        {isPrintModalOpen && (
+          <PrintableJournalModal
+            defaultScope="month"
+            onClose={() => setIsPrintModalOpen(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

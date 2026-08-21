@@ -1,16 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { motion } from 'motion/react';
 import confetti from 'canvas-confetti';
 import {
-  AlertCircle,
   BellRing,
-  Check,
   CheckCircle2,
-  Clock,
-  Flame,
-  Plus,
-  Repeat,
   Sparkles,
-  TrendingDown,
   Zap,
 } from 'lucide-react';
 import { useFinance } from '../../context/FinanceContext';
@@ -59,12 +53,11 @@ export const RecurringSuggester: React.FC<RecurringSuggesterProps> = ({
       await refreshAllData();
       await fetchSuggestions();
 
-      // Confetti celebration
       confetti({
         particleCount: 35,
         spread: 55,
         origin: { y: 0.8 },
-        colors: ['#2A6F4E', '#C07D2B', '#235789'],
+        colors: ['#007AFF', '#34C759', '#5856D6', '#FF9500'],
       });
 
       setJustLoggedMessage(`✓ Recorded ${item.name} (${currencySymbol}${item.amount})`);
@@ -84,31 +77,31 @@ export const RecurringSuggester: React.FC<RecurringSuggesterProps> = ({
     <div className="space-y-2.5 animate-in fade-in duration-200">
       {/* Just Logged Success Toast Banner */}
       {justLoggedMessage && (
-        <div className="p-2.5 rounded-lg bg-archival-green/15 border border-archival-green/30 text-archival-green text-xs font-mono font-bold flex items-center justify-between">
+        <div className="p-3 rounded-2xl bg-apple-green/15 border border-apple-green/30 text-apple-green text-xs font-mono font-bold flex items-center justify-between shadow-sm">
           <div className="flex items-center space-x-2">
             <CheckCircle2 className="w-4 h-4" />
             <span>{justLoggedMessage}</span>
           </div>
-          <span className="text-[10px] uppercase tracking-widest text-archival-green/80">
-            Ledger Reconciled
+          <span className="text-[10px] uppercase tracking-widest text-apple-green/80 font-sans font-semibold">
+            Recorded
           </span>
         </div>
       )}
 
       {/* Due Today / Upcoming Recurring Spends Prompt */}
       {dueSuggestions.length > 0 && (
-        <div className="p-3 rounded-xl bg-archival-ochre-light dark:bg-paper-dark border-2 border-archival-ochre/40 dark:border-paper-dark-border shadow-sm space-y-2">
+        <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.06] shadow-apple-card space-y-2.5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-1.5 text-xs font-serif font-bold text-archival-ochre dark:text-archival-brass uppercase tracking-wider">
+            <div className="flex items-center space-x-1.5 text-xs font-sans font-bold text-apple-orange uppercase tracking-wider">
               <BellRing className="w-3.5 h-3.5" />
-              <span>Smart Recurring Spend Radar</span>
+              <span>Upcoming Due Commitments</span>
             </div>
-            <span className="text-[10px] font-mono text-ink-400">
-              {dueSuggestions.length} commitment{dueSuggestions.length === 1 ? '' : 's'} pending
+            <span className="text-[11px] font-mono text-ink-400">
+              {dueSuggestions.length} pending
             </span>
           </div>
 
-          <div className="flex flex-wrap gap-2 pt-1">
+          <div className="flex flex-wrap gap-2 pt-0.5">
             {dueSuggestions.map(item => {
               const isDueToday = item.urgency === 'due_today';
               const isOverdue = item.urgency === 'overdue';
@@ -116,12 +109,12 @@ export const RecurringSuggester: React.FC<RecurringSuggesterProps> = ({
               return (
                 <div
                   key={item.id}
-                  className={`p-2 rounded-lg border flex items-center justify-between gap-3 text-xs w-full sm:w-auto flex-1 ${
+                  className={`p-2.5 rounded-2xl border flex items-center justify-between gap-3 text-xs w-full sm:w-auto flex-1 transition-all ${
                     isDueToday
-                      ? 'bg-paper-50 dark:bg-paper-dark-card border-archival-ochre/50 shadow-sm'
+                      ? 'bg-white dark:bg-[#1C1C1E] border-apple-orange/40 shadow-sm'
                       : isOverdue
-                      ? 'bg-archival-red-light dark:bg-paper-dark-card border-archival-red/40'
-                      : 'bg-paper-50 dark:bg-paper-dark-card border-paper-300 dark:border-paper-dark-border'
+                      ? 'bg-apple-red/10 border-apple-red/30'
+                      : 'bg-white dark:bg-[#1C1C1E] border-black/[0.06] dark:border-white/[0.08]'
                   }`}
                 >
                   <div className="min-w-0">
@@ -130,12 +123,12 @@ export const RecurringSuggester: React.FC<RecurringSuggesterProps> = ({
                         {item.name}
                       </span>
                       <span
-                        className={`text-[9px] font-mono uppercase px-1.5 py-0.2 rounded font-bold ${
+                        className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded-full font-bold ${
                           isDueToday
-                            ? 'bg-archival-ochre text-paper-50'
+                            ? 'bg-apple-orange/15 text-apple-orange'
                             : isOverdue
-                            ? 'bg-archival-red text-paper-50'
-                            : 'bg-paper-200 text-ink-600'
+                            ? 'bg-apple-red/15 text-apple-red'
+                            : 'bg-black/5 dark:bg-white/10 text-ink-500'
                         }`}
                       >
                         {isDueToday
@@ -145,21 +138,22 @@ export const RecurringSuggester: React.FC<RecurringSuggesterProps> = ({
                           : `In ${item.daysUntilDue}d`}
                       </span>
                     </div>
-                    <span className="font-mono font-bold text-xs text-archival-red mt-0.5 block">
+                    <span className="font-mono font-bold text-xs text-ink-800 dark:text-ink-200 mt-0.5 block">
                       {formatCurrency(item.amount, currencySymbol, privacyMode)}
                     </span>
                   </div>
 
                   {/* 1-Tap Log Button */}
-                  <button
+                  <motion.button
                     type="button"
+                    whileTap={{ scale: 0.94 }}
                     disabled={loggingId === item.id}
                     onClick={() => handleOneTapLog(item)}
-                    className="px-3 py-1.5 rounded bg-archival-green hover:bg-archival-green/90 text-paper-50 text-xs font-mono font-semibold shadow-sm transition-all active:scale-95 flex items-center space-x-1 disabled:opacity-50 flex-shrink-0"
+                    className="px-3.5 py-1.5 rounded-xl bg-apple-green hover:bg-apple-green/90 text-white text-xs font-sans font-semibold shadow-sm transition-all flex items-center space-x-1 disabled:opacity-50 flex-shrink-0"
                   >
                     <Zap className="w-3 h-3" />
                     <span>{loggingId === item.id ? 'Logging...' : '1-Tap Log'}</span>
-                  </button>
+                  </motion.button>
                 </div>
               );
             })}
@@ -170,22 +164,23 @@ export const RecurringSuggester: React.FC<RecurringSuggesterProps> = ({
       {/* Repetitive Spend Habits Quick Chips */}
       {frequentSuggestions.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5 pt-1">
-          <span className="text-[11px] font-mono text-ink-500 dark:text-ink-400 flex items-center space-x-1 mr-1">
-            <Sparkles className="w-3 h-3 text-archival-ochre" />
+          <span className="text-[11px] font-sans font-semibold text-ink-400 flex items-center space-x-1 mr-1">
+            <Sparkles className="w-3 h-3 text-apple-orange" />
             <span>Frequent:</span>
           </span>
           {frequentSuggestions.map((freq, idx) => (
-            <button
+            <motion.button
               key={`${freq.description}-${idx}`}
               type="button"
+              whileTap={{ scale: 0.94 }}
               onClick={() => onSelectPrompt(freq.prompt)}
-              className="text-[11px] font-mono px-2.5 py-1 rounded-md bg-paper-200/90 dark:bg-paper-dark hover:bg-paper-300 dark:hover:bg-paper-dark-border text-ink-800 dark:text-ink-200 border border-paper-300 dark:border-paper-dark-border transition-all flex items-center space-x-1"
+              className="text-xs font-sans px-3 py-1 rounded-full bg-white dark:bg-[#1C1C1E] hover:bg-black/5 dark:hover:bg-white/10 text-ink-800 dark:text-ink-200 border border-black/10 dark:border-white/10 shadow-sm transition-all flex items-center space-x-1.5"
             >
               <span>+ {freq.description}</span>
-              <span className="font-bold text-archival-red">
+              <span className="font-mono font-bold text-apple-blue text-[11px]">
                 {formatCurrency(freq.amount, currencySymbol, privacyMode)}
               </span>
-            </button>
+            </motion.button>
           ))}
         </div>
       )}

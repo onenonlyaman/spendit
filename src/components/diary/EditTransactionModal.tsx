@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import {
   AlertTriangle,
   ArrowRightLeft,
@@ -92,35 +93,44 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/60 backdrop-blur-sm animate-in fade-in">
-      <div className="max-w-lg w-full bg-paper-50 dark:bg-paper-dark-card rounded-2xl shadow-ledger-lg border border-paper-400 dark:border-paper-dark-border overflow-hidden max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md animate-in fade-in duration-150">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ type: "spring", stiffness: 450, damping: 35 }}
+        className="max-w-lg w-full bg-white dark:bg-[#1C1C1E] rounded-3xl shadow-apple-float border border-black/10 dark:border-white/10 overflow-hidden max-h-[90vh] flex flex-col"
+      >
         {/* Header */}
-        <div className="bg-paper-200/80 dark:bg-paper-dark px-5 py-3.5 border-b border-paper-300 dark:border-paper-dark-border flex items-center justify-between flex-shrink-0">
-          <h3 className="font-serif font-bold text-base text-ink-900 dark:text-ink-100">
-            Edit Ledger Transaction
-          </h3>
-          <button onClick={onClose} className="p-1 text-ink-400 hover:text-ink-800">
+        <div className="px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.08] flex items-center justify-between flex-shrink-0">
+          <div>
+            <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
+              Edit Transaction
+            </h3>
+            <span className="text-[11px] font-mono text-ink-400">ID: {transaction.id.slice(0, 8)}</span>
+          </div>
+          <button onClick={onClose} className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-ink-400">
             <X className="w-4 h-4" />
           </button>
         </div>
 
         <form onSubmit={handleSave} className="p-5 space-y-4 overflow-y-auto flex-1 text-xs">
           {/* Type Selector Tabs */}
-          <div className="flex rounded-lg bg-paper-200 dark:bg-paper-dark p-1 border border-paper-300">
+          <div className="flex rounded-xl bg-black/[0.03] dark:bg-white/[0.05] p-1 border border-black/5 dark:border-white/5">
             {(['expense', 'income', 'transfer'] as TransactionType[]).map(t => (
               <button
                 key={t}
                 type="button"
                 onClick={() => setType(t)}
-                className={`flex-1 py-1.5 rounded-md font-mono text-xs font-semibold capitalize transition-all flex items-center justify-center space-x-1 ${
+                className={`flex-1 py-1.5 rounded-lg font-sans text-xs font-semibold capitalize transition-all flex items-center justify-center space-x-1.5 ${
                   type === t
-                    ? 'bg-paper-50 dark:bg-paper-dark-card text-ink-900 dark:text-ink-100 shadow-sm border border-paper-300'
-                    : 'text-ink-500 hover:text-ink-800'
+                    ? 'bg-white dark:bg-[#2C2C2E] text-ink-900 dark:text-ink-100 shadow-sm'
+                    : 'text-ink-500 hover:text-ink-800 dark:hover:text-ink-200'
                 }`}
               >
-                {t === 'expense' && <TrendingDown className="w-3 h-3 text-archival-red" />}
-                {t === 'income' && <TrendingUp className="w-3 h-3 text-archival-green" />}
-                {t === 'transfer' && <ArrowRightLeft className="w-3 h-3 text-archival-blue" />}
+                {t === 'expense' && <TrendingDown className="w-3.5 h-3.5 text-apple-red" />}
+                {t === 'income' && <TrendingUp className="w-3.5 h-3.5 text-apple-green" />}
+                {t === 'transfer' && <ArrowRightLeft className="w-3.5 h-3.5 text-apple-blue" />}
                 <span>{t}</span>
               </button>
             ))}
@@ -129,17 +139,17 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
           {/* Description & Amount */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="sm:col-span-2">
-              <label className="block text-ink-600 font-mono mb-1">Description / Merchant</label>
+              <label className="block text-ink-700 dark:text-ink-300 font-semibold mb-1">Description / Merchant</label>
               <input
                 type="text"
                 required
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                className="w-full px-3 py-2 rounded bg-paper-100 text-ink-900 border border-paper-300"
+                className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 outline-none focus:ring-2 focus:ring-apple-blue"
               />
             </div>
             <div>
-              <label className="block text-ink-600 font-mono mb-1">Amount ({currencySymbol})</label>
+              <label className="block text-ink-700 dark:text-ink-300 font-semibold mb-1">Amount ({currencySymbol})</label>
               <input
                 type="number"
                 step="0.01"
@@ -147,7 +157,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 inputMode="decimal"
                 value={amount}
                 onChange={e => setAmount(e.target.value)}
-                className="w-full px-3 py-2 rounded bg-paper-100 font-mono font-bold border border-paper-300"
+                className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] font-mono font-bold text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 outline-none focus:ring-2 focus:ring-apple-blue"
               />
             </div>
           </div>
@@ -155,13 +165,13 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
           {/* Accounts & Category */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-ink-600 font-mono mb-1">
+              <label className="block text-ink-700 dark:text-ink-300 font-semibold mb-1">
                 {type === 'transfer' ? 'Source Account' : 'Payment Mode'}
               </label>
               <select
                 value={accountId}
                 onChange={e => setAccountId(e.target.value)}
-                className="w-full px-3 py-2 rounded bg-paper-100 text-ink-900 border border-paper-300"
+                className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 outline-none"
               >
                 {accounts.map(a => (
                   <option key={a.id} value={a.id}>{a.name}</option>
@@ -171,11 +181,11 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
 
             {type === 'transfer' ? (
               <div>
-                <label className="block text-ink-600 font-mono mb-1">Destination Account</label>
+                <label className="block text-ink-700 dark:text-ink-300 font-semibold mb-1">Destination Account</label>
                 <select
                   value={destinationAccountId}
                   onChange={e => setDestinationAccountId(e.target.value)}
-                  className="w-full px-3 py-2 rounded bg-paper-100 text-ink-900 border border-paper-300"
+                  className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 outline-none"
                 >
                   {accounts.map(a => (
                     <option key={a.id} value={a.id} disabled={a.id === accountId}>
@@ -186,11 +196,11 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               </div>
             ) : (
               <div>
-                <label className="block text-ink-600 font-mono mb-1">Category</label>
+                <label className="block text-ink-700 dark:text-ink-300 font-semibold mb-1">Category</label>
                 <select
                   value={categoryId}
                   onChange={e => setCategoryId(e.target.value)}
-                  className="w-full px-3 py-2 rounded bg-paper-100 text-ink-900 border border-paper-300"
+                  className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 outline-none"
                 >
                   {categories.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
@@ -203,51 +213,51 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
           {/* Date & Time */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-ink-600 font-mono mb-1">Journal Date</label>
+              <label className="block text-ink-700 dark:text-ink-300 font-semibold mb-1">Journal Date</label>
               <input
                 type="date"
                 value={date}
                 onChange={e => setDate(e.target.value)}
-                className="w-full px-3 py-2 rounded bg-paper-100 border border-paper-300"
+                className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 outline-none"
               />
             </div>
             <div>
-              <label className="block text-ink-600 font-mono mb-1">Time</label>
+              <label className="block text-ink-700 dark:text-ink-300 font-semibold mb-1">Time</label>
               <input
                 type="time"
                 value={time}
                 onChange={e => setTime(e.target.value)}
-                className="w-full px-3 py-2 rounded bg-paper-100 border border-paper-300"
+                className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 outline-none"
               />
             </div>
           </div>
 
           {/* Tags & Notes */}
           <div>
-            <label className="block text-ink-600 font-mono mb-1">Tags (Comma separated)</label>
+            <label className="block text-ink-700 dark:text-ink-300 font-semibold mb-1">Tags (Comma separated)</label>
             <input
               type="text"
               placeholder="#chai, #swiggy, #office"
               value={tagsText}
               onChange={e => setTagsText(e.target.value)}
-              className="w-full px-3 py-2 rounded bg-paper-100 border border-paper-300"
+              className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 outline-none focus:ring-2 focus:ring-apple-blue"
             />
           </div>
 
           <div>
-            <label className="block text-ink-600 font-mono mb-1">Handwritten Margin Reflection</label>
+            <label className="block text-ink-700 dark:text-ink-300 font-semibold mb-1">Reflection Note</label>
             <textarea
               rows={2}
               placeholder="Context or notes about this spend..."
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              className="w-full px-3 py-2 rounded bg-paper-100 font-handwriting text-sm border border-paper-300"
+              className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 text-xs border border-black/10 dark:border-white/10 outline-none focus:ring-2 focus:ring-apple-blue"
             />
           </div>
 
           {/* Receipt Upload & Preview */}
           <div className="flex items-center justify-between pt-1">
-            <label className="cursor-pointer text-xs font-mono text-ink-700 hover:text-ink-900 flex items-center space-x-1.5 px-3 py-1.5 rounded bg-paper-200 border border-paper-300">
+            <label className="cursor-pointer text-xs font-semibold text-apple-blue hover:underline flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-apple-blue/10 border border-apple-blue/20">
               <Paperclip className="w-3.5 h-3.5" />
               <span>{receiptUrl ? 'Replace Receipt Image' : 'Attach Receipt Image'}</span>
               <input type="file" accept="image/*" onChange={handleReceiptUpload} className="hidden" />
@@ -256,7 +266,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               <button
                 type="button"
                 onClick={() => setReceiptUrl('')}
-                className="text-archival-red hover:underline font-mono text-[11px]"
+                className="text-apple-red hover:underline font-mono text-[11px]"
               >
                 Remove Receipt
               </button>
@@ -264,21 +274,21 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
           </div>
 
           {/* Bottom Actions */}
-          <div className="flex items-center justify-between pt-4 border-t border-paper-300">
+          <div className="flex items-center justify-between pt-4 border-t border-black/[0.06] dark:border-white/[0.08]">
             {showDeleteConfirm ? (
               <div className="flex items-center space-x-2">
-                <span className="text-archival-red font-mono font-bold text-xs">Confirm delete?</span>
+                <span className="text-apple-red font-mono font-bold text-xs">Confirm delete?</span>
                 <button
                   type="button"
                   onClick={handleDelete}
-                  className="px-2.5 py-1 bg-archival-red text-paper-50 font-semibold rounded text-xs"
+                  className="px-3 py-1 bg-apple-red text-white font-semibold rounded-xl text-xs"
                 >
                   Yes, Delete
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="px-2 py-1 text-ink-600 hover:bg-paper-200 rounded text-xs"
+                  className="px-2 py-1 text-ink-600 dark:text-ink-300 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl text-xs"
                 >
                   Cancel
                 </button>
@@ -287,10 +297,10 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="text-archival-red hover:underline font-mono text-xs flex items-center space-x-1"
+                className="text-apple-red hover:underline text-xs font-semibold flex items-center space-x-1"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Delete Transaction</span>
+                <span>Delete</span>
               </button>
             )}
 
@@ -298,21 +308,22 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3 py-1.5 text-ink-600 hover:bg-paper-200 rounded text-xs"
+                className="px-4 py-2 text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl"
               >
                 Cancel
               </button>
-              <button
+              <motion.button
+                whileTap={{ scale: 0.95 }}
                 type="submit"
-                className="px-4 py-1.5 bg-ink-900 text-paper-50 font-semibold rounded text-xs shadow-sm flex items-center space-x-1"
+                className="px-4 py-2 bg-apple-blue hover:bg-apple-blue/90 text-white font-semibold rounded-xl text-xs shadow-sm flex items-center space-x-1"
               >
                 <Save className="w-3.5 h-3.5" />
                 <span>Save Changes</span>
-              </button>
+              </motion.button>
             </div>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 };

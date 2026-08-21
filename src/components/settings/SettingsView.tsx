@@ -1,24 +1,36 @@
 import React, { useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   AlertTriangle,
+  Bell,
+  Check,
+  ChevronRight,
   Coins,
   Download,
   Eye,
   FileSpreadsheet,
+  Globe,
   HardDrive,
+  Moon,
   Printer,
+  RefreshCcw,
   RefreshCw,
   Save,
   Shield,
   Sparkles,
+  Sun,
   Trash2,
   Upload,
+  Volume2,
+  VolumeX,
+  Zap,
 } from 'lucide-react';
 import { useFinance } from '../../context/FinanceContext';
 import { exportTransactionsToCSV } from '../../lib/utils';
 import { PrintableJournalModal } from '../common/PrintableJournalModal';
 import { OnboardingGuideModal } from '../common/OnboardingGuideModal';
 import { UpdateModal } from '../common/UpdateModal';
+import { AppleSwitch } from '../ui/apple-switch';
 import { sounds } from '../../lib/audioHaptics';
 import {
   AppUpdateState,
@@ -30,7 +42,6 @@ import {
   ensureNotificationPermission,
   sendNativeNotification,
 } from '../../lib/notifications';
-import { Bell, Check, Globe, RefreshCcw } from 'lucide-react';
 
 export const SettingsView: React.FC = () => {
   const {
@@ -41,6 +52,10 @@ export const SettingsView: React.FC = () => {
     setCurrencySymbol,
     privacyMode,
     togglePrivacyMode,
+    theme,
+    toggleTheme,
+    performanceMode,
+    togglePerformanceMode,
     exportBackup,
     importBackup,
     resetAllData,
@@ -68,7 +83,7 @@ export const SettingsView: React.FC = () => {
 
   const handleCheckForUpdates = async () => {
     setIsCheckingUpdate(true);
-    setUpdateCheckStatus('Checking GitHub Releases for updates...');
+    setUpdateCheckStatus('Checking for latest releases...');
 
     try {
       const res = await checkForAppUpdates();
@@ -82,7 +97,6 @@ export const SettingsView: React.FC = () => {
         setUpdateCheckStatus(`✓ SpendIt is up to date (v${CURRENT_APP_VERSION})`);
         setTimeout(() => setUpdateCheckStatus(null), 5000);
       }
-
     } catch (err: any) {
       setUpdateCheckStatus('Could not check updates: ' + (err?.message || 'Offline'));
     } finally {
@@ -94,23 +108,25 @@ export const SettingsView: React.FC = () => {
     const granted = await ensureNotificationPermission();
     if (granted) {
       await sendNativeNotification(
-        '🔔 SpendIt Native Desktop Alert',
-        'Windows toast notifications are successfully connected and working perfectly!'
+        '🔔 SpendIt System Notification',
+        'Native notifications are working smoothly.'
       );
-    } else {
-      alert('Notification permissions are not enabled in Windows Settings.');
     }
   };
 
+  const handleToggleNotifications = async (val: boolean) => {
+    if (val) {
+      const granted = await ensureNotificationPermission();
+      if (!granted) return;
+    }
+    setNotificationsEnabled(val);
+    localStorage.setItem('spendit_notifications_enabled', val ? 'true' : 'false');
+  };
 
-  const currencies = [
-    { symbol: '₹', name: 'Indian Rupee (₹) — Default' },
-    { symbol: '$', name: 'US Dollar ($)' },
-    { symbol: '€', name: 'Euro (€)' },
-    { symbol: '£', name: 'British Pound (£)' },
-    { symbol: '¥', name: 'Japanese Yen (¥)' },
-    { symbol: 'CHF', name: 'Swiss Franc (CHF)' },
-  ];
+  const handleToggleBillAlerts = (val: boolean) => {
+    setBillAlertsEnabled(val);
+    localStorage.setItem('spendit_bill_alerts_enabled', val ? 'true' : 'false');
+  };
 
   const handleExportJSON = async () => {
     const backupData = await exportBackup();
@@ -153,100 +169,49 @@ export const SettingsView: React.FC = () => {
     reader.readAsText(file);
   };
 
+  const currencies = [
+    { symbol: '₹', name: 'Indian Rupee (₹)' },
+    { symbol: '$', name: 'US Dollar ($)' },
+    { symbol: '€', name: 'Euro (€)' },
+    { symbol: '£', name: 'British Pound (£)' },
+    { symbol: '¥', name: 'Japanese Yen (¥)' },
+    { symbol: 'CHF', name: 'Swiss Franc (CHF)' },
+  ];
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 sm:px-6 space-y-6">
+    <div className="max-w-3xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6">
       {/* Header */}
-      <div className="bg-paper-50 dark:bg-paper-dark-card p-6 rounded-2xl border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center space-x-4">
-          <img src="/logo.png" alt="SpendIt Logo" className="w-14 h-14 rounded-2xl object-contain shadow-md border border-paper-200 dark:border-paper-dark-border" />
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="text-xs uppercase font-mono tracking-widest text-archival-ochre font-bold">
-                Ledger Preferences & Archival Tools
+      <div className="apple-glass-card rounded-3xl p-6 space-y-1">
+        <span className="text-xs uppercase font-mono tracking-wider text-ink-400 dark:text-ink-500 font-semibold block">
+          Configuration & Sovereignty
+        </span>
+        <h1 className="font-sans font-bold text-2xl sm:text-3xl text-ink-900 dark:text-ink-100 tracking-tight">
+          Settings
+        </h1>
+      </div>
+
+      {/* Section 1: App Preferences */}
+      <div className="space-y-2">
+        <span className="text-[11px] font-mono uppercase tracking-wider text-ink-400 font-semibold px-3 block">
+          Preferences & Acoustics
+        </span>
+
+        <div className="apple-inset-group shadow-apple-card divide-y divide-black/[0.04] dark:divide-white/[0.06]">
+          {/* Currency Row */}
+          <div className="px-4 py-3.5 flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
+                Primary Currency
+              </span>
+              <span className="text-[11px] font-mono text-ink-400">
+                Default symbol for amounts
               </span>
             </div>
-            <h1 className="font-serif font-bold text-3xl text-ink-900 dark:text-ink-100 mt-1">
-              Settings & Sovereignty
-            </h1>
-            <p className="text-xs font-sans text-ink-600 dark:text-ink-400 mt-0.5">
-              Your financial journal stays strictly private on your personal device. Zero tracking. Zero cloud lock-in.
-            </p>
-          </div>
-        </div>
 
-
-        <button
-          onClick={() => setIsOnboardingModalOpen(true)}
-          className="px-3.5 py-2 rounded-lg bg-paper-200 hover:bg-paper-300 dark:bg-paper-dark dark:hover:bg-paper-dark-border text-ink-800 dark:text-ink-200 text-xs font-mono font-semibold flex items-center space-x-1.5 border border-paper-300 dark:border-paper-dark-border self-start sm:self-auto min-h-[36px]"
-        >
-          <span>📖 Journal Guide</span>
-        </button>
-      </div>
-
-      {/* Printable Archival PDF Section */}
-      <div className="p-6 rounded-2xl bg-paper-50 dark:bg-paper-dark-card border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger space-y-4">
-        <div className="flex items-center space-x-2 border-b border-paper-300 dark:border-paper-dark-border pb-2">
-          <Printer className="w-4 h-4 text-archival-ochre" />
-          <h3 className="font-serif font-bold text-base text-ink-900 dark:text-ink-100">
-            Printable Archival Ledger PDF
-          </h3>
-        </div>
-
-        <p className="text-xs font-sans text-ink-600 dark:text-ink-400 leading-relaxed">
-          Generate an authentic physical journal folio sheet or monthly book. Ready for printing, binder archival, or personal records.
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-          <button
-            onClick={() => setPrintableModalScope('day')}
-            className="p-3.5 rounded-xl bg-paper-100 dark:bg-paper-dark hover:bg-paper-200 dark:hover:bg-paper-dark-border/40 border border-paper-300 dark:border-paper-dark-border flex flex-col items-center justify-center space-y-1.5 transition-all text-center group"
-          >
-            <Printer className="w-5 h-5 text-archival-ochre group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-mono font-semibold text-ink-900 dark:text-ink-100">
-              Today's Folio Sheet
-            </span>
-            <span className="text-[10px] text-ink-400">Daily ruled page with margin notes</span>
-          </button>
-
-          <button
-            onClick={() => setPrintableModalScope('month')}
-            className="p-3.5 rounded-xl bg-paper-100 dark:bg-paper-dark hover:bg-paper-200 dark:hover:bg-paper-dark-border/40 border border-paper-300 dark:border-paper-dark-border flex flex-col items-center justify-center space-y-1.5 transition-all text-center group"
-          >
-            <Printer className="w-5 h-5 text-archival-blue group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-mono font-semibold text-ink-900 dark:text-ink-100">
-              Monthly Chapter Volume
-            </span>
-            <span className="text-[10px] text-ink-400">Month vitals, envelopes & records</span>
-          </button>
-
-          <button
-            onClick={() => setPrintableModalScope('all')}
-            className="p-3.5 rounded-xl bg-paper-100 dark:bg-paper-dark hover:bg-paper-200 dark:hover:bg-paper-dark-border/40 border border-paper-300 dark:border-paper-dark-border flex flex-col items-center justify-center space-y-1.5 transition-all text-center group"
-          >
-            <Printer className="w-5 h-5 text-archival-green group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-mono font-semibold text-ink-900 dark:text-ink-100">
-              Complete Audit Book
-            </span>
-            <span className="text-[10px] text-ink-400">Full historical ledger register</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Currency & Presentation Preferences */}
-      <div className="p-6 rounded-2xl bg-paper-50 dark:bg-paper-dark-card border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger space-y-4">
-        <h3 className="font-serif font-bold text-base text-ink-900 dark:text-ink-100 border-b border-paper-300 dark:border-paper-dark-border pb-2">
-          Journal Currency & Masking
-        </h3>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-xs font-mono text-ink-600 dark:text-ink-400 mb-1">
-              Primary Currency Symbol
-            </label>
             <select
               value={currencySymbol}
               onChange={e => setCurrencySymbol(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-paper-100 dark:bg-paper-dark text-ink-900 dark:text-ink-100 border border-paper-300 dark:border-paper-dark-border text-xs min-h-[38px]"
+              className="px-3 py-1.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] text-xs font-semibold text-ink-900 dark:text-ink-100 outline-none cursor-pointer"
             >
               {currencies.map(c => (
                 <option key={c.symbol} value={c.symbol}>
@@ -256,86 +221,201 @@ export const SettingsView: React.FC = () => {
             </select>
           </div>
 
-          <div>
-            <label className="block text-xs font-mono text-ink-600 dark:text-ink-400 mb-1">
-              Public Privacy Mask Mode
-            </label>
-            <button
-              onClick={togglePrivacyMode}
-              className="w-full px-3 py-2 rounded-lg bg-paper-100 dark:bg-paper-dark text-ink-900 dark:text-ink-100 border border-paper-300 dark:border-paper-dark-border text-xs flex items-center justify-between min-h-[38px]"
-            >
-              <span>{privacyMode ? 'Masked (••••••)' : 'Unmasked (Public)'}</span>
-              <span className="font-mono text-[10px] text-archival-ochre">Key: 'P'</span>
-            </button>
+          {/* Privacy Mask Toggle */}
+          <div className="px-4 py-3.5 flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
+                Privacy Mode
+              </span>
+              <span className="text-[11px] font-mono text-ink-400">
+                Mask amounts in public view (Key: P)
+              </span>
+            </div>
+
+            <AppleSwitch
+              checked={privacyMode}
+              onChange={togglePrivacyMode}
+              color="blue"
+              aria-label="Toggle Privacy Mode"
+            />
           </div>
 
-          <div>
-            <label className="block text-xs font-mono text-ink-600 dark:text-ink-400 mb-1">
-              Tactile Sound & Acoustic Effects
-            </label>
-            <button
-              onClick={() => {
-                const next = !hapticsEnabled;
+          {/* Acoustic Haptics Toggle */}
+          <div className="px-4 py-3.5 flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
+                Acoustic Haptics & Sounds
+              </span>
+              <span className="text-[11px] font-mono text-ink-400">
+                Page turns, wax stamps, and coin chimes
+              </span>
+            </div>
+
+            <AppleSwitch
+              checked={hapticsEnabled}
+              onChange={(next) => {
                 setHapticsEnabled(next);
                 sounds.setEnabled(next);
                 if (next) sounds.playCoinChime();
               }}
-              className="w-full px-3 py-2 rounded-lg bg-paper-100 dark:bg-paper-dark text-ink-900 dark:text-ink-100 border border-paper-300 dark:border-paper-dark-border text-xs flex items-center justify-between min-h-[38px]"
-            >
-              <span>{hapticsEnabled ? '🔊 Sound Enabled' : '🔇 Muted'}</span>
-              <span className="font-mono text-[10px] text-archival-ochre">
-                {hapticsEnabled ? 'Stamps & Coins' : 'Silent'}
+              color="green"
+              aria-label="Toggle Acoustic Haptics"
+            />
+          </div>
+
+          {/* Visual Profile / Performance Mode Toggle */}
+          <div className="px-4 py-3.5 flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
+                Performance Profile
               </span>
+              <span className="text-[11px] font-mono text-ink-400">
+                {performanceMode
+                  ? 'High Speed: Blurs & springs disabled for ultra-low GPU load'
+                  : 'Rich Appearance: Translucent blurs & fluid spring physics'}
+              </span>
+            </div>
+
+            <AppleSwitch
+              checked={performanceMode}
+              onChange={togglePerformanceMode}
+              color="orange"
+              aria-label="Toggle Performance Profile"
+            />
+          </div>
+
+          {/* First-Run Guide Trigger */}
+          <button
+            onClick={() => setIsOnboardingModalOpen(true)}
+            className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+          >
+            <div>
+              <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
+                Journal Guide & Tutorial
+              </span>
+              <span className="text-[11px] font-mono text-ink-400">
+                Re-open interactive shorthand walkthrough
+              </span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-ink-400" />
+          </button>
+        </div>
+      </div>
+
+      {/* Section 2: Notifications & Updates */}
+      <div className="space-y-2">
+        <span className="text-[11px] font-mono uppercase tracking-wider text-ink-400 font-semibold px-3 block">
+          System & Notifications
+        </span>
+
+        <div className="apple-inset-group shadow-apple-card divide-y divide-black/[0.04] dark:divide-white/[0.06]">
+          {/* Bill Reminders Toggle */}
+          <div className="px-4 py-3.5 flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
+                Recurring Bill Due Reminders
+              </span>
+              <span className="text-[11px] font-mono text-ink-400">
+                Toast notifications when commitments are due
+              </span>
+            </div>
+
+            <AppleSwitch
+              checked={billAlertsEnabled}
+              onChange={(next) => handleToggleBillAlerts(next)}
+              color="green"
+              aria-label="Toggle Recurring Bill Reminders"
+            />
+          </div>
+
+          {/* Check Updates Row */}
+          <div className="px-4 py-3.5 flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
+                SpendIt Desktop v{CURRENT_APP_VERSION}
+              </span>
+              <span className="text-[11px] font-mono text-ink-400">
+                {updateCheckStatus || 'Offline-first release'}
+              </span>
+            </div>
+
+            <button
+              onClick={handleCheckForUpdates}
+              disabled={isCheckingUpdate}
+              className="px-3 py-1.5 rounded-xl bg-apple-blue hover:bg-apple-blue/90 text-white text-xs font-semibold shadow-sm transition-all active:scale-95 disabled:opacity-50"
+            >
+              {isCheckingUpdate ? 'Checking...' : 'Check Updates'}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Data Sovereignty & Portability */}
-      <div className="p-6 rounded-2xl bg-paper-50 dark:bg-paper-dark-card border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger space-y-4">
-        <div className="flex items-center space-x-2 border-b border-paper-300 dark:border-paper-dark-border pb-2">
-          <HardDrive className="w-4 h-4 text-archival-brass" />
-          <h3 className="font-serif font-bold text-base text-ink-900 dark:text-ink-100">
-            Journal Portability & Offline Backups
-          </h3>
-        </div>
+      {/* Section 3: Data Export & Archiving */}
+      <div className="space-y-2">
+        <span className="text-[11px] font-mono uppercase tracking-wider text-ink-400 font-semibold px-3 block">
+          Export & Portability
+        </span>
 
-        <p className="text-xs font-sans text-ink-600 dark:text-ink-400 leading-relaxed">
-          SpendIt maintains your records with complete financial integrity. You can export complete journal archives, download spreadsheet registers, or restore previous books at any time.
-        </p>
+        <div className="apple-inset-group shadow-apple-card divide-y divide-black/[0.04] dark:divide-white/[0.06]">
+          {/* Export PDF Book */}
+          <button
+            onClick={() => setPrintableModalScope('all')}
+            className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+          >
+            <div>
+              <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
+                Print Complete Historical Folio
+              </span>
+              <span className="text-[11px] font-mono text-ink-400">
+                Export vector printable PDF document
+              </span>
+            </div>
+            <Printer className="w-4 h-4 text-apple-blue" />
+          </button>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-          {/* Export Journal Archive */}
+          {/* Export JSON Backup */}
           <button
             onClick={handleExportJSON}
-            className="p-3 rounded-xl bg-paper-100 dark:bg-paper-dark hover:bg-paper-200 border border-paper-300 dark:border-paper-dark-border flex flex-col items-center justify-center space-y-1.5 transition-colors text-center"
+            className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
           >
-            <Download className="w-5 h-5 text-archival-green" />
-            <span className="text-xs font-mono font-semibold text-ink-800 dark:text-ink-200">
-              Export Journal Archive
-            </span>
-            <span className="text-[10px] text-ink-400">All accounts, goals & ledger entries</span>
+            <div>
+              <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
+                Export Journal JSON Backup
+              </span>
+              <span className="text-[11px] font-mono text-ink-400">
+                Download complete backup file
+              </span>
+            </div>
+            <Download className="w-4 h-4 text-apple-green" />
           </button>
 
-          {/* Export Spreadsheet Register */}
+          {/* Export CSV */}
           <button
             onClick={handleExportCSV}
-            className="p-3 rounded-xl bg-paper-100 dark:bg-paper-dark hover:bg-paper-200 border border-paper-300 dark:border-paper-dark-border flex flex-col items-center justify-center space-y-1.5 transition-colors text-center"
+            className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
           >
-            <FileSpreadsheet className="w-5 h-5 text-archival-blue" />
-            <span className="text-xs font-mono font-semibold text-ink-800 dark:text-ink-200">
-              Export Spreadsheet Register
-            </span>
-            <span className="text-[10px] text-ink-400">Excel / Sheets compatible</span>
+            <div>
+              <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
+                Export Spreadsheet CSV
+              </span>
+              <span className="text-[11px] font-mono text-ink-400">
+                Excel / Numbers compatible register
+              </span>
+            </div>
+            <FileSpreadsheet className="w-4 h-4 text-apple-orange" />
           </button>
 
-          {/* Restore Journal Archive */}
-          <label className="cursor-pointer p-3 rounded-xl bg-paper-100 dark:bg-paper-dark hover:bg-paper-200 border border-paper-300 dark:border-paper-dark-border flex flex-col items-center justify-center space-y-1.5 transition-colors text-center">
-            <Upload className="w-5 h-5 text-archival-ochre" />
-            <span className="text-xs font-mono font-semibold text-ink-800 dark:text-ink-200">
-              Restore Journal File
-            </span>
-            <span className="text-[10px] text-ink-400">Upload backup archive file</span>
+          {/* Restore JSON */}
+          <label className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors cursor-pointer">
+            <div>
+              <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
+                Restore Journal Archive
+              </span>
+              <span className="text-[11px] font-mono text-ink-400">
+                {importStatus || 'Upload .json backup'}
+              </span>
+            </div>
+            <Upload className="w-4 h-4 text-apple-indigo" />
             <input
               ref={fileInputRef}
               type="file"
@@ -345,204 +425,105 @@ export const SettingsView: React.FC = () => {
             />
           </label>
         </div>
-
-        {importStatus && (
-          <div className="p-2.5 rounded-lg bg-archival-ochre/15 text-archival-ochre text-xs font-mono text-center font-bold">
-            {importStatus}
-          </div>
-        )}
       </div>
 
-      {/* Software Updates & OTA Channel */}
-      <div className="p-6 rounded-2xl bg-paper-50 dark:bg-paper-dark-card border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger space-y-4">
-        <div className="flex items-center justify-between border-b border-paper-200 dark:border-paper-dark-border pb-3">
-          <div className="flex items-center space-x-2">
-            <RefreshCcw className="w-4 h-4 text-archival-ochre" />
-            <h3 className="font-serif font-bold text-base text-ink-900 dark:text-ink-100">
-              Software Releases & In-App Updates
-            </h3>
-          </div>
-          <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-archival-ochre/15 text-archival-ochre">
-            v{CURRENT_APP_VERSION}
-          </span>
-        </div>
+      {/* Section 4: Destructive Zone */}
+      <div className="space-y-2">
+        <span className="text-[11px] font-mono uppercase tracking-wider text-apple-red font-semibold px-3 block">
+          Reset Zone
+        </span>
 
-        <p className="text-xs font-sans text-ink-600 dark:text-ink-400 leading-relaxed">
-          SpendIt is open-source and distributed securely via GitHub Releases. Minor and patch updates can be applied over-the-air seamlessly without touching your local database.
-        </p>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            onClick={handleCheckForUpdates}
-            disabled={isCheckingUpdate}
-            className="px-4 py-2 bg-archival-ochre hover:bg-archival-ochre-dark disabled:opacity-50 text-white rounded-xl text-xs font-mono font-bold flex items-center space-x-2 transition-transform active:scale-95 shadow-sm"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isCheckingUpdate ? 'animate-spin' : ''}`} />
-            <span>{isCheckingUpdate ? 'Checking Releases...' : 'Check for Updates'}</span>
-          </button>
-
-          <button
-            onClick={openGitHubReleases}
-            className="px-4 py-2 bg-paper-200 hover:bg-paper-300 dark:bg-paper-dark dark:hover:bg-paper-dark-border text-ink-800 dark:text-ink-200 rounded-xl text-xs font-mono font-bold flex items-center space-x-2 transition-colors border border-paper-300 dark:border-paper-dark-border"
-          >
-            <Globe className="w-3.5 h-3.5" />
-            <span>GitHub Releases Page</span>
-          </button>
-        </div>
-
-        {updateCheckStatus && (
-          <div className="p-3 bg-paper-100 dark:bg-paper-dark rounded-xl border border-paper-200 dark:border-paper-dark-border text-xs font-mono text-ink-700 dark:text-ink-300 flex items-center space-x-2">
-            <Sparkles className="w-4 h-4 text-archival-ochre flex-shrink-0" />
-            <span>{updateCheckStatus}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Native Desktop Notifications */}
-      <div className="p-6 rounded-2xl bg-paper-50 dark:bg-paper-dark-card border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger space-y-4">
-        <div className="flex items-center justify-between border-b border-paper-200 dark:border-paper-dark-border pb-3">
-          <div className="flex items-center space-x-2">
-            <Bell className="w-4 h-4 text-forest-700 dark:text-forest-400" />
-            <h3 className="font-serif font-bold text-base text-ink-900 dark:text-ink-100">
-              Native Windows Notifications
-            </h3>
-          </div>
-        </div>
-
-        <p className="text-xs font-sans text-ink-600 dark:text-ink-400 leading-relaxed">
-          Receive native Windows 10/11 desktop toast reminders for daily journaling and recurring bill deadlines.
-        </p>
-
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 rounded-xl bg-paper-100 dark:bg-paper-dark border border-paper-200 dark:border-paper-dark-border">
-            <div>
-              <p className="text-xs font-mono font-bold text-ink-800 dark:text-ink-200">
-                Daily Evening Journal Prompt (9:00 PM)
-              </p>
-              <p className="text-[11px] text-ink-500">
-                Gentle reminder to review daily ledger and seal the day's reflection
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                const next = !notificationsEnabled;
-                setNotificationsEnabled(next);
-                localStorage.setItem('spendit_notifications_enabled', String(next));
-                if (next) ensureNotificationPermission();
-              }}
-              className={`w-11 h-6 rounded-full transition-colors relative p-0.5 flex items-center ${notificationsEnabled ? 'bg-forest-700' : 'bg-paper-300 dark:bg-paper-dark-border'}`}
-            >
-              <div
-                className={`w-5 h-5 rounded-full bg-white transition-transform ${notificationsEnabled ? 'translate-x-5' : 'translate-x-0'}`}
-              />
-            </button>
+        <div className="apple-inset-group shadow-apple-card p-4 flex items-center justify-between">
+          <div>
+            <span className="text-xs font-semibold text-apple-red block">
+              Erase & Reset All Data
+            </span>
+            <span className="text-[11px] font-mono text-ink-400">
+              Clear all transactions, accounts, and goal envelopes
+            </span>
           </div>
 
-          <div className="flex items-center justify-between p-3 rounded-xl bg-paper-100 dark:bg-paper-dark border border-paper-200 dark:border-paper-dark-border">
-            <div>
-              <p className="text-xs font-mono font-bold text-ink-800 dark:text-ink-200">
-                Recurring Bill Due Alerts
-              </p>
-              <p className="text-[11px] text-ink-500">
-                Toast notification when rent, electricity, or subscriptions are due today
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                const next = !billAlertsEnabled;
-                setBillAlertsEnabled(next);
-                localStorage.setItem('spendit_bill_alerts_enabled', String(next));
-                if (next) ensureNotificationPermission();
-              }}
-              className={`w-11 h-6 rounded-full transition-colors relative p-0.5 flex items-center ${billAlertsEnabled ? 'bg-forest-700' : 'bg-paper-300 dark:bg-paper-dark-border'}`}
-            >
-              <div
-                className={`w-5 h-5 rounded-full bg-white transition-transform ${billAlertsEnabled ? 'translate-x-5' : 'translate-x-0'}`}
-              />
-            </button>
-          </div>
-        </div>
-
-        <button
-          onClick={handleTestNotification}
-          className="px-3.5 py-1.5 bg-paper-200 hover:bg-paper-300 dark:bg-paper-dark dark:hover:bg-paper-dark-border text-ink-800 dark:text-ink-200 rounded-lg text-xs font-mono font-semibold flex items-center space-x-1.5 border border-paper-300 dark:border-paper-dark-border transition-colors"
-        >
-          <Bell className="w-3.5 h-3.5" />
-          <span>Send Test Windows Notification</span>
-        </button>
-      </div>
-
-      {/* Danger Zone: Ledger Reset */}
-      <div className="p-6 rounded-2xl bg-paper-50 dark:bg-paper-dark-card border-2 border-archival-red/30 shadow-ledger space-y-4">
-        <div className="flex items-center space-x-2 border-b border-archival-red/20 pb-2">
-          <AlertTriangle className="w-4 h-4 text-archival-red" />
-          <h3 className="font-serif font-bold text-base text-archival-red">
-            Danger Zone • Ledger Reset
-          </h3>
-        </div>
-
-
-        <p className="text-xs font-sans text-ink-600 dark:text-ink-400 leading-relaxed">
-          Reset the journal and clear all transaction records, accounts, notes, and money jars back to clean blank pages.
-        </p>
-
-        {showResetConfirm ? (
-          <div className="p-4 rounded-xl bg-archival-red-light dark:bg-archival-red/20 border border-archival-red space-y-3">
-            <p className="text-xs font-mono text-archival-red font-bold">
-              ⚠ This action cannot be undone. All recorded journal entries and custom accounts will be permanently cleared.
-            </p>
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={async () => {
-                  await resetAllData();
-                  setShowResetConfirm(false);
-                }}
-                className="px-4 py-1.5 rounded-lg bg-archival-red text-paper-50 font-mono text-xs font-bold hover:bg-archival-red/90 transition-colors shadow-sm"
-              >
-                Permanently Clear Journal
-              </button>
-              <button
-                onClick={() => setShowResetConfirm(false)}
-                className="px-3 py-1.5 rounded-lg text-ink-700 dark:text-ink-300 font-mono text-xs hover:bg-paper-200 dark:hover:bg-paper-dark"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        ) : (
           <button
             onClick={() => setShowResetConfirm(true)}
-            className="px-4 py-2 rounded-lg bg-archival-red-light dark:bg-archival-red/15 text-archival-red border border-archival-red/40 hover:bg-archival-red/20 font-mono text-xs font-semibold flex items-center space-x-2 transition-colors"
+            className="px-3 py-1.5 rounded-xl bg-apple-red/10 hover:bg-apple-red/20 text-apple-red text-xs font-semibold transition-colors"
           >
-            <Trash2 className="w-3.5 h-3.5" />
-            <span>Reset Ledger to Fresh Clean State</span>
+            Reset All
           </button>
-        )}
+        </div>
       </div>
 
+      {/* Reset Confirmation Modal */}
+      <AnimatePresence>
+        {showResetConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              className="w-full max-w-sm p-6 rounded-3xl bg-white dark:bg-[#1C1C1E] border border-apple-red/30 shadow-apple-float space-y-4"
+            >
+              <div className="w-10 h-10 rounded-2xl bg-apple-red/15 text-apple-red flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+
+              <div>
+                <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
+                  Reset All Ledger Data?
+                </h3>
+                <p className="text-xs text-ink-500 mt-1 leading-relaxed">
+                  This action is irreversible. All transactions, accounts, and goals will be wiped.
+                </p>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2">
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="px-4 py-2 text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    resetAllData();
+                    setShowResetConfirm(false);
+                  }}
+                  className="px-4 py-2 text-xs font-semibold bg-apple-red hover:bg-apple-red/90 text-white rounded-xl shadow-sm"
+                >
+                  Erase Everything
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Printable Modal */}
-      {printableModalScope && (
-        <PrintableJournalModal
-          defaultScope={printableModalScope}
-          onClose={() => setPrintableModalScope(null)}
-        />
-      )}
+      <AnimatePresence>
+        {printableModalScope && (
+          <PrintableJournalModal
+            defaultScope={printableModalScope}
+            onClose={() => setPrintableModalScope(null)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Onboarding Guide Modal */}
-      {isOnboardingModalOpen && (
-        <OnboardingGuideModal
-          onClose={() => setIsOnboardingModalOpen(false)}
-        />
-      )}
+      <AnimatePresence>
+        {isOnboardingModalOpen && (
+          <OnboardingGuideModal onClose={() => setIsOnboardingModalOpen(false)} />
+        )}
+      </AnimatePresence>
 
-      {/* Software Update / Upgrade Modal */}
-      {showUpdateModal && updateState && (
-        <UpdateModal
-          updateState={updateState}
-          onClose={() => setShowUpdateModal(false)}
-        />
-      )}
+      {/* Update Modal */}
+      <AnimatePresence>
+        {showUpdateModal && updateState && (
+          <UpdateModal
+            updateState={updateState}
+            onClose={() => setShowUpdateModal(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
-

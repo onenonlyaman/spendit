@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
-  ArrowLeft,
-  ArrowRight,
   BookOpen,
-  Calendar,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Coffee,
   FileText,
+  PenTool,
   Plus,
   Printer,
   RotateCcw,
   Sparkles,
 } from 'lucide-react';
 import { useFinance } from '../../context/FinanceContext';
-import { formatDateJournalHeader, formatDateLong, getTodayString } from '../../lib/utils';
+import { formatDateJournalHeader, formatCurrency, getTodayString } from '../../lib/utils';
+import { getDailyTotals } from '../../lib/accounting';
 import { PrintableJournalModal } from '../common/PrintableJournalModal';
 import { ReceiptModal } from '../common/ReceiptModal';
 import { RecurringSuggester } from '../common/RecurringSuggester';
@@ -31,12 +32,15 @@ export const DiaryView: React.FC = () => {
     goToNextDay,
     goToToday,
     transactions,
+    privacyMode,
+    currencySymbol,
     setIsQuickAddOpen,
   } = useFinance();
 
   const [selectedReceipt, setSelectedReceipt] = useState<{ url: string; description: string } | null>(null);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
-  const [isRibbonActive, setIsRibbonActive] = useState(false);
+  const [showReflections, setShowReflections] = useState(false);
+  const [showClosure, setShowClosure] = useState(false);
 
   const handlePrevDay = () => {
     sounds.playPageTurn();
@@ -50,8 +54,6 @@ export const DiaryView: React.FC = () => {
 
   const handleGoToToday = () => {
     sounds.playPageTurn();
-    setIsRibbonActive(true);
-    setTimeout(() => setIsRibbonActive(false), 900);
     goToToday();
   };
 
@@ -60,204 +62,231 @@ export const DiaryView: React.FC = () => {
     .filter(t => t.date === currentDiaryDate)
     .sort((a, b) => a.time.localeCompare(b.time));
 
+  const totals = getDailyTotals(transactions, currentDiaryDate);
   const isToday = currentDiaryDate === getTodayString();
   const headerInfo = formatDateJournalHeader(currentDiaryDate);
 
-  // Calculate day of the year e.g. Day 226 of 365
-  const [y, m, d] = currentDiaryDate.split('-').map(Number);
-  const curDateObj = new Date(y, m - 1, d);
-  const startOfYear = new Date(curDateObj.getFullYear(), 0, 0);
-  const diffTime = curDateObj.getTime() - startOfYear.getTime();
-  const dayOfYear = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 sm:px-6 space-y-6">
-      {/* Date Navigation & Diary Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Day Paginator */}
-        <div className="flex items-center space-x-1.5 bg-paper-50 dark:bg-paper-dark-card p-1 rounded-lg border border-paper-300 dark:border-paper-dark-border shadow-sm min-h-[40px]">
-          <button
-            onClick={handlePrevDay}
-            className="p-2 rounded-md hover:bg-paper-200 dark:hover:bg-paper-dark text-ink-700 dark:text-ink-300 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
-            aria-label="Previous Day"
-            title="Previous Day (←)"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
+    <div className="max-w-4xl mx-auto px-3 sm:px-6 py-3 sm:py-6 space-y-4 sm:space-y-5">
+      {/* Apple-Grade Header Card & Hero Stat */}
+      <div className="apple-glass-card rounded-3xl p-4 sm:p-7 space-y-3 sm:space-y-4">
+        {/* Date Paginator & Controls Row */}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center space-x-0.5 sm:space-x-1 bg-black/5 dark:bg-white/10 p-1 rounded-2xl">
+            <button
+              onClick={handlePrevDay}
+              className="p-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-ink-700 dark:text-ink-300 transition-colors min-w-[28px] min-h-[28px] sm:min-w-[32px] sm:min-h-[32px] flex items-center justify-center"
+              aria-label="Previous Day"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
 
-          <input
-            type="date"
-            value={currentDiaryDate}
-            onChange={e => e.target.value && setDiaryDate(e.target.value)}
-            className="px-2.5 py-1 text-xs font-mono font-medium rounded bg-transparent text-ink-900 dark:text-ink-100 border-0 focus:ring-1 focus:ring-archival-ochre cursor-pointer"
-            aria-label="Select Diary Date"
-          />
+            <input
+              type="date"
+              value={currentDiaryDate}
+              onChange={e => e.target.value && setDiaryDate(e.target.value)}
+              className="px-1.5 sm:px-2 py-1 text-xs font-mono font-semibold rounded-lg bg-transparent text-ink-900 dark:text-ink-100 border-0 focus:ring-1 focus:ring-apple-blue cursor-pointer max-w-[124px] sm:max-w-none"
+              aria-label="Select Date"
+            />
 
-          <button
-            onClick={handleNextDay}
-            className="p-2 rounded-md hover:bg-paper-200 dark:hover:bg-paper-dark text-ink-700 dark:text-ink-300 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
-            aria-label="Next Day"
-            title="Next Day (→)"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
+            <button
+              onClick={handleNextDay}
+              className="p-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-ink-700 dark:text-ink-300 transition-colors min-w-[28px] min-h-[28px] sm:min-w-[32px] sm:min-h-[32px] flex items-center justify-center"
+              aria-label="Next Day"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Action Pills */}
+          <div className="flex items-center space-x-1.5 sm:space-x-2">
+            {!isToday && (
+              <button
+                onClick={handleGoToToday}
+                className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/15 text-apple-red text-xs font-semibold flex items-center space-x-1 transition-all min-h-[32px]"
+                aria-label="Jump to Today"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Today</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => setIsPrintModalOpen(true)}
+              className="p-1.5 sm:p-2 rounded-xl bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/15 text-ink-700 dark:text-ink-300 text-xs transition-colors min-w-[30px] min-h-[30px] sm:min-w-[32px] sm:min-h-[32px] flex items-center justify-center"
+              aria-label="Export or Print Folio"
+              title="Print Folio"
+            >
+              <Printer className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center space-x-2">
-          {!isToday && (
-            <button
-              onClick={handleGoToToday}
-              className="px-3 py-1.5 rounded-md bg-paper-200/80 hover:bg-paper-300 dark:bg-paper-dark-card dark:hover:bg-paper-dark text-ink-700 dark:text-ink-300 text-xs font-mono flex items-center space-x-1 border border-paper-300 dark:border-paper-dark-border shadow-sm transition-all min-h-[36px]"
-              aria-label="Jump to Today's Folio"
-            >
-              <RotateCcw className="w-3.5 h-3.5 text-archival-red" />
-              <span>Jump to Today</span>
-            </button>
-          )}
+        {/* Glanceable Hero Title & Daily Spend Figure */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 pt-1">
+          <div>
+            <span className="text-xs uppercase font-mono tracking-wider text-ink-400 dark:text-ink-500 font-semibold block">
+              {headerInfo.dayName}
+            </span>
+            <h1 className="font-sans font-bold text-xl sm:text-3xl text-ink-900 dark:text-ink-100 tracking-tight mt-0.5">
+              {headerInfo.monthName} {headerInfo.dayNumber}, {headerInfo.year}
+            </h1>
+          </div>
 
-          <button
-            onClick={() => setIsPrintModalOpen(true)}
-            className="px-3 py-1.5 rounded-md bg-paper-200 hover:bg-paper-300 dark:bg-paper-dark-card dark:hover:bg-paper-dark text-ink-700 dark:text-ink-300 text-xs font-mono flex items-center space-x-1 border border-paper-300 dark:border-paper-dark-border shadow-sm transition-all min-h-[36px]"
-            aria-label="Export or Print Today's Ledger Folio"
-            title="Export / Print Today's Ledger Folio"
-          >
-            <Printer className="w-3.5 h-3.5 text-archival-ochre" />
-            <span className="hidden sm:inline">Print Folio</span>
-          </button>
-
-          <button
-            onClick={() => setIsQuickAddOpen(true)}
-            className="px-3.5 py-1.5 rounded-md bg-ink-900 hover:bg-ink-800 dark:bg-paper-100 dark:hover:bg-paper-200 text-paper-50 dark:text-ink-900 text-xs font-sans font-semibold shadow-sm flex items-center space-x-1.5 transition-all"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Log Transaction</span>
-          </button>
+          <div className="sm:text-right bg-black/[0.02] dark:bg-white/[0.04] p-3 rounded-2xl border border-black/[0.04] dark:border-white/[0.06]">
+            <span className="text-[11px] font-mono text-ink-500 dark:text-ink-400 block">
+              Total Outflow Today
+            </span>
+            <span className="font-mono font-bold text-xl sm:text-2xl text-ink-900 dark:text-ink-100 tracking-tight">
+              {formatCurrency(totals.expense, currencySymbol, privacyMode)}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Dynamic Recurring Spends & Due Commitments Radar */}
+      {/* Dynamic Recurring Suggestions Radar */}
       {isToday && (
         <RecurringSuggester
           onSelectPrompt={() => setIsQuickAddOpen(true)}
         />
       )}
 
-      {/* Main Physical Notebook Sheet */}
-      <div className="relative rounded-2xl shadow-ledger-lg bg-paper-50 dark:bg-paper-dark-card border-2 border-paper-300 dark:border-paper-dark-border overflow-hidden">
-        {/* Bookmark Ribbon on Today */}
-        {isToday && (
-          <div
-            className={`bookmark-ribbon ${isRibbonActive ? 'ribbon-active' : ''}`}
-            title="Current Today Bookmark Ribbon"
-          />
+      {/* Apple Inset Grouped Transaction Ledger */}
+      <div className="apple-inset-group shadow-apple-card">
+        <div className="px-4 py-3 border-b border-black/[0.04] dark:border-white/[0.06] flex items-center justify-between bg-black/[0.01] dark:bg-white/[0.02]">
+          <span className="text-xs font-semibold text-ink-700 dark:text-ink-300">
+            Transactions ({dayTransactions.length})
+          </span>
+          <span className="text-[11px] font-mono text-ink-400">
+            Tap row for details
+          </span>
+        </div>
+
+        {dayTransactions.length === 0 ? (
+          /* Clean Minimal Empty State */
+          <div className="py-12 px-4 text-center space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-black/5 dark:bg-white/10 text-ink-400 dark:text-ink-500 flex items-center justify-center mx-auto text-xl">
+              <Coffee className="w-6 h-6" />
+            </div>
+            <h3 className="font-sans font-semibold text-base text-ink-800 dark:text-ink-200">
+              No transactions recorded for this day
+            </h3>
+            <p className="font-sans text-xs text-ink-500 dark:text-ink-400 max-w-sm mx-auto">
+              Type naturally in the Quick Add bar (Press 'N') to log chai, grocery, UPI payments, or transfers.
+            </p>
+            <button
+              onClick={() => setIsQuickAddOpen(true)}
+              className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-apple-blue hover:bg-apple-blue/90 text-white text-xs font-semibold shadow-sm transition-all active:scale-95"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Log First Entry</span>
+            </button>
+          </div>
+        ) : (
+          <div className="divide-y divide-black/[0.04] dark:divide-white/[0.06]">
+            {dayTransactions.map(transaction => (
+              <TransactionRow
+                key={transaction.id}
+                transaction={transaction}
+                onOpenReceipt={(url, desc) => setSelectedReceipt({ url, description: desc })}
+              />
+            ))}
+          </div>
         )}
+      </div>
 
-        {/* Page Top Header with Ledger Ruling */}
-        <div className="p-6 sm:p-8 border-b-2 border-paper-300 dark:border-paper-dark-border bg-paper-100/60 dark:bg-paper-dark">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div>
-              <div className="flex items-center space-x-2 mb-1">
-                <span className="text-[11px] uppercase font-mono tracking-widest text-archival-ochre font-bold">
-                  Financial Journal • Folio #{dayOfYear}
-                </span>
-                <span className="text-paper-400 dark:text-ink-600">•</span>
-                <span className="text-[11px] font-mono text-ink-500">
-                  Year {headerInfo.year}
-                </span>
-              </div>
-
-              <h1 className="font-serif font-bold text-3xl sm:text-4xl text-ink-900 dark:text-ink-100 tracking-tight">
-                {headerInfo.dayName}
-              </h1>
-              <p className="font-serif italic text-base text-ink-600 dark:text-ink-400 mt-0.5">
-                {headerInfo.monthName} {headerInfo.dayNumber}, {headerInfo.year}
-              </p>
-            </div>
-
-            {/* Daily Metric Pill */}
-            <div className="text-right">
-              <span className="text-[11px] font-mono text-ink-500 dark:text-ink-400 block">
-                Logged Entries
-              </span>
-              <span className="font-mono font-bold text-lg text-ink-900 dark:text-ink-100">
-                {dayTransactions.length} {dayTransactions.length === 1 ? 'record' : 'records'}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Ruled Transaction Ledger Body */}
-        <div className="p-4 sm:p-8 min-h-[320px]">
-          <div className="mb-3 flex items-center justify-between pb-2 border-b border-paper-300 dark:border-paper-dark-border">
-            <span className="font-serif font-bold text-xs uppercase tracking-wider text-ink-700 dark:text-ink-300">
-              Journaled Transactions
-            </span>
-            <span className="text-[11px] font-mono text-ink-400">
-              Verified Journal Ledger • Audited
+      {/* Progressive Disclosure Section 1: Daily Reflection Note Accordion */}
+      <div className="apple-inset-group">
+        <button
+          onClick={() => setShowReflections(!showReflections)}
+          className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+        >
+          <div className="flex items-center space-x-2.5">
+            <PenTool className="w-4 h-4 text-apple-orange" />
+            <span className="text-xs font-semibold text-ink-900 dark:text-ink-100">
+              Daily Reflection, Mood & Weather
             </span>
           </div>
+          <ChevronDown
+            className={`w-4 h-4 text-ink-400 transition-transform duration-200 ${
+              showReflections ? 'rotate-180 text-apple-orange' : ''
+            }`}
+          />
+        </button>
 
-          {dayTransactions.length === 0 ? (
-            /* Tactile Empty State */
-            <div className="py-14 px-4 text-center space-y-3.5">
-              <div className="w-14 h-14 rounded-2xl bg-paper-200/70 dark:bg-paper-dark text-archival-ochre flex items-center justify-center mx-auto border border-paper-300 dark:border-paper-dark-border shadow-inner">
-                <Coffee className="w-7 h-7" />
+        <AnimatePresence>
+          {showReflections && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="p-4 pt-1 border-t border-black/[0.04] dark:border-white/[0.06]">
+                <DailyNotes date={currentDiaryDate} />
               </div>
-              <h3 className="font-serif italic text-xl text-ink-800 dark:text-ink-200">
-                An unwritten ledger page awaits.
-              </h3>
-              <p className="font-sans text-xs text-ink-500 dark:text-ink-400 max-w-md mx-auto leading-relaxed">
-                Log your morning chai, kirana groceries, auto fare, or salary inflow using natural language.
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-                <button
-                  onClick={() => setIsQuickAddOpen(true)}
-                  className="px-4 py-2 rounded-lg bg-ink-900 hover:bg-ink-800 dark:bg-paper-100 dark:hover:bg-paper-200 text-paper-50 dark:text-ink-900 text-xs font-sans font-semibold shadow-sm flex items-center space-x-1.5 transition-all"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Log First Entry (Press 'N')</span>
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="divide-y divide-paper-200 dark:divide-paper-dark-border">
-              {dayTransactions.map(transaction => (
-                <TransactionRow
-                  key={transaction.id}
-                  transaction={transaction}
-                  onOpenReceipt={(url, desc) => setSelectedReceipt({ url, description: desc })}
-                />
-              ))}
-            </div>
+            </motion.div>
           )}
+        </AnimatePresence>
+      </div>
 
-          {/* Daily Margin Notes Section */}
-          <div className="mt-8">
-            <DailyNotes date={currentDiaryDate} />
+      {/* Progressive Disclosure Section 2: End-of-Day Closure & Wax Seal Accordion */}
+      <div className="apple-inset-group">
+        <button
+          onClick={() => setShowClosure(!showClosure)}
+          className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+        >
+          <div className="flex items-center space-x-2.5">
+            <Sparkles className="w-4 h-4 text-apple-green" />
+            <span className="text-xs font-semibold text-ink-900 dark:text-ink-100">
+              End-of-Day Closure & Audited Seal
+            </span>
           </div>
+          <ChevronDown
+            className={`w-4 h-4 text-ink-400 transition-transform duration-200 ${
+              showClosure ? 'rotate-180 text-apple-green' : ''
+            }`}
+          />
+        </button>
 
-          {/* End of Day Summary & Sealing */}
-          <EndOfDaySummary date={currentDiaryDate} />
-        </div>
+        <AnimatePresence>
+          {showClosure && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="p-4 pt-1 border-t border-black/[0.04] dark:border-white/[0.06]">
+                <EndOfDaySummary date={currentDiaryDate} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Receipt Viewer Modal */}
-      {selectedReceipt && (
-        <ReceiptModal
-          receiptUrl={selectedReceipt.url}
-          description={selectedReceipt.description}
-          onClose={() => setSelectedReceipt(null)}
-        />
-      )}
+      <AnimatePresence>
+        {selectedReceipt && (
+          <ReceiptModal
+            receiptUrl={selectedReceipt.url}
+            description={selectedReceipt.description}
+            onClose={() => setSelectedReceipt(null)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Printable Folio Modal */}
-      {isPrintModalOpen && (
-        <PrintableJournalModal
-          defaultScope="day"
-          onClose={() => setIsPrintModalOpen(false)}
-        />
-      )}
+      <AnimatePresence>
+        {isPrintModalOpen && (
+          <PrintableJournalModal
+            defaultScope="day"
+            onClose={() => setIsPrintModalOpen(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

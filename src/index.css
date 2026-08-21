@@ -132,27 +132,157 @@
   letter-spacing: 0.02em;
 }
 
-/* Custom Scrollbar for Ledger Aesthetics */
+/* Universal Scrollbar Elimination for Horizontal & Seamless Containers */
+.no-scrollbar::-webkit-scrollbar,
+.scroll-fade-x::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.no-scrollbar,
+.scroll-fade-x {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* Horizontal Fade-off Gradient Mask for Instinctive Scroll Affordance */
+.mask-fade-x {
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 16px,
+    black calc(100% - 16px),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 16px,
+    black calc(100% - 16px),
+    transparent 100%
+  );
+}
+
+.mask-fade-x-left {
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 16px,
+    black 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 16px,
+    black 100%
+  );
+}
+
+.mask-fade-x-right {
+  mask-image: linear-gradient(
+    to right,
+    black 0%,
+    black calc(100% - 16px),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    black 0%,
+    black calc(100% - 16px),
+    transparent 100%
+  );
+}
+
+/* Apple HIG Global Scrollbar Styling (Minimal, thin for vertical only) */
 ::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 0px; /* Never show horizontal scrollbars globally */
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(236, 226, 208, 0.4);
-}
-
-.dark ::-webkit-scrollbar-track {
-  background: rgba(36, 35, 31, 0.4);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(142, 156, 148, 0.5);
-  border-radius: 4px;
+  background: rgba(142, 156, 148, 0.3);
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(84, 96, 89, 0.8);
+  background: rgba(142, 156, 148, 0.6);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Apple HIG Glass Surfaces & Inset Grouped Hierarchy */
+.apple-glass-card {
+  background: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(28px) saturate(1.9) brightness(1.02);
+  -webkit-backdrop-filter: blur(28px) saturate(1.9) brightness(1.02);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.dark .apple-glass-card {
+  background: rgba(28, 28, 34, 0.65);
+  backdrop-filter: blur(32px) saturate(2.0) brightness(1.1);
+  -webkit-backdrop-filter: blur(32px) saturate(2.0) brightness(1.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.7);
+}
+
+.apple-inset-group {
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+}
+
+.dark .apple-inset-group {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(28, 28, 34, 0.65);
+  backdrop-filter: blur(28px) saturate(1.9);
+  -webkit-backdrop-filter: blur(28px) saturate(1.9);
+}
+
+.apple-segmented-picker {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.dark .apple-segmented-picker {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.apple-segmented-item {
+  padding: 5px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.apple-segmented-item-active {
+  background: #ffffff;
+  color: #191C1A;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.dark .apple-segmented-item-active {
+  background: #2C2C2E;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 /* Bookmark Ribbon */
@@ -170,6 +300,38 @@
 
 .bookmark-ribbon:hover {
   transform: translateY(4px);
+}
+
+/* ========================================================================= */
+/* PERFORMANCE PROFILE: ULTRA-LOW GPU LOAD & ZERO BLURS                      */
+/* ========================================================================= */
+.performance-mode *,
+.performance-mode *::before,
+.performance-mode *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.performance-mode .apple-glass-card {
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+.dark.performance-mode .apple-glass-card,
+.dark .performance-mode .apple-glass-card,
+.performance-mode.dark .apple-glass-card {
+  background: #1C1C1E !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+}
+
+.performance-mode .apple-inset-group {
+  background: #ffffff !important;
+}
+
+.dark.performance-mode .apple-inset-group,
+.dark .performance-mode .apple-inset-group,
+.performance-mode.dark .apple-inset-group {
+  background: #1C1C1E !important;
 }
 
 /* Print Optimization for Archival PDF Export */

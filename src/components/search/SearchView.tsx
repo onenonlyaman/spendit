@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Calendar,
+  ChevronDown,
   Filter,
   Image,
   Paperclip,
@@ -13,6 +15,8 @@ import { formatCurrency, formatDateShort } from '../../lib/utils';
 import { Transaction } from '../../types';
 import { ReceiptModal } from '../common/ReceiptModal';
 import { TransactionRow } from '../diary/TransactionRow';
+import { GooeyInput } from '../ui/gooey-input';
+import { AppleSwitch } from '../ui/apple-switch';
 
 export const SearchView: React.FC = () => {
   const {
@@ -23,9 +27,11 @@ export const SearchView: React.FC = () => {
     currencySymbol,
     setDiaryDate,
     setActiveView,
+    searchQuery,
+    setSearchQuery,
   } = useFinance();
 
-  const [query, setQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const [selectedAccountId, setSelectedAccountId] = useState<string>('all');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
@@ -41,7 +47,7 @@ export const SearchView: React.FC = () => {
 
   // Filter transactions
   const filteredTransactions = useMemo(() => {
-    const qLower = query.toLowerCase().trim();
+    const qLower = searchQuery.toLowerCase().trim();
 
     return transactions.filter(t => {
       // Query search
@@ -77,7 +83,7 @@ export const SearchView: React.FC = () => {
 
       return true;
     });
-  }, [transactions, query, selectedAccountId, selectedCategoryId, selectedType, onlyWithReceipts]);
+  }, [transactions, searchQuery, selectedAccountId, selectedCategoryId, selectedType, onlyWithReceipts]);
 
   // Total matching sum
   const totalMatchingExpense = filteredTransactions
@@ -85,168 +91,172 @@ export const SearchView: React.FC = () => {
     .reduce((sum, t) => sum + t.amount, 0);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 sm:px-6 space-y-6">
-      {/* Header */}
-      <div className="bg-paper-50 dark:bg-paper-dark-card p-6 rounded-2xl border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger">
-        <div className="flex items-center space-x-2">
-          <span className="text-xs uppercase font-mono tracking-widest text-archival-ochre font-bold">
-            Ledger Index & Archives
+    <div className="max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5">
+      {/* Apple Spotlight Search Hero Card */}
+      <div className="apple-glass-card rounded-3xl p-6 sm:p-7 space-y-4">
+        <div>
+          <span className="text-xs uppercase font-mono tracking-wider text-ink-400 dark:text-ink-500 font-semibold block">
+            Universal Search & Archive
           </span>
-          <span className="text-paper-400">•</span>
-          <span className="text-xs font-mono text-ink-500">
-            Full-Text Journal Query
-          </span>
+          <h1 className="font-sans font-bold text-2xl sm:text-3xl text-ink-900 dark:text-ink-100 tracking-tight mt-0.5">
+            Spotlight Search
+          </h1>
         </div>
-        <h1 className="font-serif font-bold text-3xl text-ink-900 dark:text-ink-100 mt-1">
-          Archive Search & Discovery
-        </h1>
-        <p className="text-xs font-sans text-ink-600 dark:text-ink-400 mt-0.5">
-          Locate any historical transaction, handwritten note, or receipt attachment in milliseconds.
-        </p>
 
-        {/* Main Search Input */}
-        <div className="mt-4 relative">
-          <Search className="w-4 h-4 text-ink-400 absolute left-3.5 top-3.5" />
+        {/* Large Apple Search Input */}
+        <div className="relative flex items-center">
+          <Search className="absolute left-4 w-4 h-4 text-ink-400 pointer-events-none" />
           <input
             type="text"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Search descriptions, notes (e.g. 'chai', 'coffee', 'Gion'), #tags, or exact amounts..."
-            className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-paper-100 dark:bg-paper-dark text-ink-900 dark:text-ink-100 font-sans text-sm border border-paper-300 dark:border-paper-dark-border focus:outline-none focus:ring-2 focus:ring-archival-ochre shadow-inner"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search by merchant, note, #tag, or amount..."
+            className="w-full pl-11 pr-10 py-3 rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] text-sm text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue font-sans shadow-inner"
+            autoFocus
           />
-          {query && (
+          {searchQuery && (
             <button
-              onClick={() => setQuery('')}
-              className="absolute right-3.5 top-3 text-ink-400 hover:text-ink-700 min-w-[28px] min-h-[28px] flex items-center justify-center -m-1"
-              aria-label="Clear search query"
-              title="Clear search query"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3.5 p-1 rounded-full text-ink-400 hover:text-ink-700 dark:hover:text-ink-200"
             >
               <X className="w-4 h-4" />
             </button>
           )}
         </div>
 
-        {/* Filter Controls Row */}
-        <div className="flex flex-wrap items-center gap-2 pt-3 text-xs">
-          {/* Account Filter */}
-          <select
-            value={selectedAccountId}
-            onChange={e => setSelectedAccountId(e.target.value)}
-            className="px-2.5 py-1 rounded bg-paper-100 dark:bg-paper-dark text-ink-800 dark:text-ink-200 border border-paper-300 dark:border-paper-dark-border"
-          >
-            <option value="all">All Accounts</option>
-            {accounts.map(a => (
-              <option key={a.id} value={a.id}>{a.name}</option>
-            ))}
-          </select>
-
-          {/* Category Filter */}
-          <select
-            value={selectedCategoryId}
-            onChange={e => setSelectedCategoryId(e.target.value)}
-            className="px-2.5 py-1 rounded bg-paper-100 dark:bg-paper-dark text-ink-800 dark:text-ink-200 border border-paper-300 dark:border-paper-dark-border"
-          >
-            <option value="all">All Categories</option>
-            {categories.map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-
-          {/* Type Filter */}
-          <select
-            value={selectedType}
-            onChange={e => setSelectedType(e.target.value)}
-            className="px-2.5 py-1 rounded bg-paper-100 dark:bg-paper-dark text-ink-800 dark:text-ink-200 border border-paper-300 dark:border-paper-dark-border"
-          >
-            <option value="all">All Types</option>
-            <option value="expense">Expenses Only</option>
-            <option value="income">Incomes Only</option>
-            <option value="transfer">Transfers Only</option>
-          </select>
-
-          {/* Only Receipts Toggle */}
-          <button
-            onClick={() => setOnlyWithReceipts(!onlyWithReceipts)}
-            className={`px-2.5 py-1 rounded border transition-colors flex items-center space-x-1 ${
-              onlyWithReceipts
-                ? 'bg-archival-ochre text-paper-50 border-archival-ochre font-semibold'
-                : 'bg-paper-100 dark:bg-paper-dark text-ink-700 dark:text-ink-300 border-paper-300 dark:border-paper-dark-border'
-            }`}
-          >
-            <Paperclip className="w-3 h-3" />
-            <span>Has Receipt</span>
-          </button>
-        </div>
-
-        {/* Common Tag Chips */}
-        {allTags.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5 pt-3 border-t border-paper-200 dark:border-paper-dark-border mt-3">
-            <span className="text-[11px] font-mono text-ink-400">Popular Tags:</span>
-            {allTags.slice(0, 10).map(tag => (
+        {/* Filter Toggle & Quick Tags */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
+            <span className="text-[10px] font-mono text-ink-400 mr-1">Quick:</span>
+            {allTags.slice(0, 5).map(tag => (
               <button
                 key={tag}
-                onClick={() => setQuery(tag)}
-                className="text-[11px] font-mono px-2 py-0.5 rounded bg-paper-200 dark:bg-paper-dark text-ink-700 dark:text-ink-300 hover:bg-paper-300 border border-paper-300 dark:border-paper-dark-border transition-colors"
+                onClick={() => setSearchQuery(tag)}
+                className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/10 hover:bg-apple-blue/15 hover:text-apple-blue transition-colors text-ink-700 dark:text-ink-300"
               >
-                {tag}
+                #{tag}
               </button>
             ))}
           </div>
-        )}
+
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="inline-flex items-center space-x-1 text-xs font-semibold text-apple-blue hover:underline"
+          >
+            <Filter className="w-3.5 h-3.5" />
+            <span>{showFilters ? 'Hide Filters' : 'Filter Options'}</span>
+            <ChevronDown className={`w-3 h-3 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+
+        {/* Progressive Disclosure Filter Drawer */}
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden pt-2 border-t border-black/[0.04] dark:border-white/[0.06]"
+            >
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
+                <div>
+                  <label className="block text-[10px] font-mono text-ink-500 mb-1">Account</label>
+                  <select
+                    value={selectedAccountId}
+                    onChange={e => setSelectedAccountId(e.target.value)}
+                    className="w-full px-2.5 py-1.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-xs outline-none"
+                  >
+                    <option value="all">All Accounts</option>
+                    {accounts.map(a => (
+                      <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-mono text-ink-500 mb-1">Category</label>
+                  <select
+                    value={selectedCategoryId}
+                    onChange={e => setSelectedCategoryId(e.target.value)}
+                    className="w-full px-2.5 py-1.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-xs outline-none"
+                  >
+                    <option value="all">All Categories</option>
+                    {categories.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-mono text-ink-500 mb-1">Type</label>
+                  <select
+                    value={selectedType}
+                    onChange={e => setSelectedType(e.target.value)}
+                    className="w-full px-2.5 py-1.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-xs outline-none"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="expense">Expense</option>
+                    <option value="income">Income</option>
+                    <option value="transfer">Transfer</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 h-[38px]">
+                  <span className="text-xs font-semibold text-ink-800 dark:text-ink-200">
+                    📎 Receipts Only
+                  </span>
+                  <AppleSwitch
+                    checked={onlyWithReceipts}
+                    onChange={setOnlyWithReceipts}
+                    color="blue"
+                    size="sm"
+                    aria-label="Filter Receipts Only"
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Search Results Ledger Sheet */}
-      <div className="rounded-2xl bg-paper-50 dark:bg-paper-dark-card border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger overflow-hidden p-6">
-        <div className="flex items-center justify-between pb-3 border-b border-paper-300 dark:border-paper-dark-border mb-3">
-          <div className="flex items-center space-x-2">
-            <span className="font-serif font-bold text-sm uppercase text-ink-800 dark:text-ink-200">
-              Query Results ({filteredTransactions.length} items)
+      {/* Results Inset Group */}
+      <div className="apple-inset-group shadow-apple-card">
+        <div className="px-4 py-3 border-b border-black/[0.04] dark:border-white/[0.06] flex items-center justify-between bg-black/[0.01] dark:bg-white/[0.02]">
+          <span className="text-xs font-semibold text-ink-700 dark:text-ink-300">
+            Matching Records ({filteredTransactions.length})
+          </span>
+          {totalMatchingExpense > 0 && (
+            <span className="text-xs font-mono font-bold text-ink-900 dark:text-ink-100">
+              Total: {formatCurrency(totalMatchingExpense, currencySymbol, privacyMode)}
             </span>
-          </div>
-
-          <div className="font-mono text-xs text-ink-600 dark:text-ink-400">
-            Matching Outflow:{' '}
-            <strong className="text-archival-red">
-              {formatCurrency(totalMatchingExpense, currencySymbol, privacyMode)}
-            </strong>
-          </div>
+          )}
         </div>
 
         {filteredTransactions.length === 0 ? (
-          <div className="py-12 text-center text-ink-500 space-y-2">
-            <Search className="w-8 h-8 mx-auto opacity-40" />
-            <p className="font-serif italic text-base">No matching ledger entries found.</p>
-            <p className="text-xs font-sans">Try broadening your search query or removing active filters.</p>
+          <div className="py-12 px-4 text-center space-y-2">
+            <Search className="w-8 h-8 text-ink-300 mx-auto" />
+            <h3 className="font-sans font-semibold text-sm text-ink-800 dark:text-ink-200">
+              No matching records found
+            </h3>
+            <p className="text-xs text-ink-400">
+              Try adjusting query keywords or resetting filter parameters.
+            </p>
           </div>
         ) : (
-          <div className="divide-y divide-paper-200 dark:divide-paper-dark-border">
-            {filteredTransactions.map(txn => (
-              <div key={txn.id} className="relative">
-                {/* Date jump banner on row */}
-                <div className="flex items-center justify-between py-1 bg-paper-100/50 dark:bg-paper-dark/50 px-3 text-[10px] font-mono text-ink-400">
-                  <button
-                    onClick={() => {
-                      setDiaryDate(txn.date);
-                      setActiveView('diary');
-                    }}
-                    className="hover:underline text-archival-ochre flex items-center space-x-1"
-                  >
-                    <Calendar className="w-3 h-3" />
-                    <span>Jump to Diary: {txn.date}</span>
-                  </button>
-                  <span>Folio Record #{txn.id.slice(-6)}</span>
-                </div>
-                <TransactionRow
-                  transaction={txn}
-                  onOpenReceipt={(url, desc) => setSelectedReceipt({ url, description: desc })}
-                />
-              </div>
+          <div className="divide-y divide-black/[0.04] dark:divide-white/[0.06]">
+            {filteredTransactions.map(transaction => (
+              <TransactionRow
+                key={transaction.id}
+                transaction={transaction}
+                onOpenReceipt={(url, desc) => setSelectedReceipt({ url, description: desc })}
+              />
             ))}
           </div>
         )}
       </div>
 
-      {/* Receipt Viewer */}
+      {/* Receipt Viewer Modal */}
       {selectedReceipt && (
         <ReceiptModal
           receiptUrl={selectedReceipt.url}

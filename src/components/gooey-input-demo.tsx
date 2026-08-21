@@ -1,0 +1,10 @@
+import React from "react";
+import { GooeyInput } from "./ui/gooey-input";
+
+export default function GooeyInputDemo() {
+  return (
+    <div className="flex h-40 w-full items-center justify-center p-4">
+      <GooeyInput placeholder="Search..." />
+    </div>
+  );
+}

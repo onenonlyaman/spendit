@@ -6,6 +6,16 @@ import { Account, Category, DailyNote, MoneyGoal, RecurringItem, Transaction } f
 
 export type ActiveView = 'diary' | 'accounts' | 'chapters' | 'goals' | 'simulator' | 'search' | 'settings';
 
+export const VIEW_ORDER: Record<ActiveView, number> = {
+  diary: 0,
+  accounts: 1,
+  chapters: 2,
+  goals: 3,
+  simulator: 4,
+  search: 5,
+  settings: 6,
+};
+
 interface FinanceContextType {
   // State
   transactions: Transaction[];
@@ -18,11 +28,14 @@ interface FinanceContextType {
   // Navigation & UI
   currentDiaryDate: string;
   activeView: ActiveView;
+  navDirection: number;
   privacyMode: boolean;
   currencySymbol: string;
   isQuickAddOpen: boolean;
   theme: 'light' | 'dark';
+  performanceMode: boolean;
   isLoading: boolean;
+  searchQuery: string;
 
   // Navigation Setters
   setDiaryDate: (date: string) => void;
@@ -31,9 +44,11 @@ interface FinanceContextType {
   goToToday: () => void;
   setActiveView: (view: ActiveView) => void;
   togglePrivacyMode: () => void;
+  togglePerformanceMode: () => void;
   setCurrencySymbol: (sym: string) => void;
   setIsQuickAddOpen: (open: boolean) => void;
   toggleTheme: () => void;
+  setSearchQuery: (query: string) => void;
   refreshAllData: () => Promise<void>;
 
   // Transaction Operations
@@ -85,12 +100,60 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [recurring, setRecurring] = useState<RecurringItem[]>([]);
 
   const [currentDiaryDate, setCurrentDiaryDate] = useState<string>(getTodayString());
-  const [activeView, setActiveView] = useState<ActiveView>('diary');
+  const [activeView, setActiveViewState] = useState<ActiveView>('diary');
+  const [navDirection, setNavDirection] = useState<number>(0);
+
+  const setActiveView = (nextView: ActiveView) => {
+    setActiveViewState(current => {
+      if (current === nextView) return current;
+      const currentOrder = VIEW_ORDER[current] ?? 0;
+      const nextOrder = VIEW_ORDER[nextView] ?? 0;
+      setNavDirection(nextOrder >= currentOrder ? 1 : -1);
+      return nextView;
+    });
+  };
+
   const [privacyMode, setPrivacyMode] = useState<boolean>(false);
   const [currencySymbol, setCurrencySymbol] = useState<string>('₹');
   const [isQuickAddOpen, setIsQuickAddOpen] = useState<boolean>(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('spendit_theme');
+    if (saved === 'dark' || saved === 'light') return saved;
+    return typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+  const [performanceMode, setPerformanceMode] = useState<boolean>(() => {
+    return localStorage.getItem('spendit_performance_mode') === 'true';
+  });
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Sync theme with document element and color-scheme
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.style.colorScheme = 'dark';
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
+    }
+  }, [theme]);
+
+  // Sync performance mode (disables heavy blurs & spring animations)
+  useEffect(() => {
+    if (performanceMode) {
+      document.documentElement.classList.add('performance-mode');
+    } else {
+      document.documentElement.classList.remove('performance-mode');
+    }
+  }, [performanceMode]);
+
+  const togglePerformanceMode = () => {
+    setPerformanceMode(prev => {
+      const next = !prev;
+      localStorage.setItem('spendit_performance_mode', String(next));
+      return next;
+    });
+  };
 
   // Fetch all data from SQLite
   const refreshAllData = async () => {
@@ -169,11 +232,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const toggleTheme = () => {
     setTheme(prev => {
       const next = prev === 'light' ? 'dark' : 'light';
-      if (next === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+      localStorage.setItem('spendit_theme', next);
       return next;
     });
   };
@@ -361,17 +420,22 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         recurring,
         currentDiaryDate,
         activeView,
+        navDirection,
         privacyMode,
         currencySymbol,
         isQuickAddOpen,
         theme,
+        performanceMode,
         isLoading,
+        searchQuery,
+        setSearchQuery,
         setDiaryDate: setCurrentDiaryDate,
         goToPreviousDay,
         goToNextDay,
         goToToday,
         setActiveView,
         togglePrivacyMode,
+        togglePerformanceMode,
         setCurrencySymbol,
         setIsQuickAddOpen,
         toggleTheme,

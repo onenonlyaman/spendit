@@ -535,7 +535,7 @@ export function generateLedgerPrintHTML(data: PrintDocumentData): string {
     <div class="ledger-header">
       <div class="brand-strip">
         <span>§ SPENDIT ARCHIVAL FINANCIAL REGISTER</span>
-        <span>CURRENCY: ₹ (INR)</span>
+        <span>CURRENCY: ${currencySymbol}</span>
       </div>
 
       <div class="header-main">
