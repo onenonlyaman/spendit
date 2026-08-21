@@ -6,7 +6,9 @@
 
 class SoundEffectsEngine {
   private ctx: AudioContext | null = null;
-  private enabled: boolean = true;
+  // Sound is off until the user asks for it. An app that makes noise on first
+  // launch, in a room the developer cannot see, has made a choice for someone.
+  private enabled: boolean = false;
 
   constructor() {
     // Check localStorage preference

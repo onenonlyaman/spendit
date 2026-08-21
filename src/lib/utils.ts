@@ -15,10 +15,21 @@ export function formatCurrency(
     return '••••••';
   }
   const isNegative = amount < 0;
-  const absVal = Math.abs(amount).toLocaleString('en-US', {
-    minimumFractionDigits: 2,
+  const abs = Math.abs(amount);
+
+  // The rupee groups in lakhs and crores (1,20,000), not thousands (120,000).
+  // Any other symbol keeps Western grouping.
+  const locale = currencySymbol === '₹' ? 'en-IN' : 'en-US';
+
+  // Whole amounts read as whole amounts. A ledger of chai and autos should not
+  // be a column of ".00" — decimals appear only when there are decimals.
+  const hasFraction = Math.abs(abs - Math.round(abs)) > 0.004;
+
+  const absVal = abs.toLocaleString(locale, {
+    minimumFractionDigits: hasFraction ? 2 : 0,
     maximumFractionDigits: 2,
   });
+
   return `${isNegative ? '-' : ''}${currencySymbol}${absVal}`;
 }
 

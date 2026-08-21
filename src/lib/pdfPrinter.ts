@@ -159,7 +159,7 @@ export function generateLedgerPrintHTML(data: PrintDocumentData): string {
           <span>•</span>
           <span>Weather: <strong>${escapeHtml(dailyNote.weather)}</strong></span>
           ${dailyNote.location ? `<span>• Location: <strong>${escapeHtml(dailyNote.location)}</strong></span>` : ''}
-          ${dailyNote.sealed ? `<span>• <strong style="color: #932a2a;">[✓ SEALED INK PAGE]</strong></span>` : ''}
+          ${dailyNote.sealed ? `<span>• <strong style="color: #FF3B30;">[✓ SEALED INK PAGE]</strong></span>` : ''}
         </div>
         ${
           dailyNote.reflection
@@ -177,9 +177,8 @@ export function generateLedgerPrintHTML(data: PrintDocumentData): string {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(documentTitle)} - SpendIt</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Cinzel:wght@600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- No webfont fetch: this document must print identically offline, and the
+       app's own faces are already loaded in the window that renders it. -->
   <style>
     @page {
       size: A4 portrait;
@@ -194,7 +193,7 @@ export function generateLedgerPrintHTML(data: PrintDocumentData): string {
 
     body {
       background-color: #ffffff;
-      color: #1a1815;
+      color: #191C1A;
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       font-size: 11pt;
       line-height: 1.45;
@@ -211,7 +210,7 @@ export function generateLedgerPrintHTML(data: PrintDocumentData): string {
 
     /* Top Archival Header */
     .ledger-header {
-      border-bottom: 2px solid #1a1815;
+      border-bottom: 2px solid #191C1A;
       padding-bottom: 12px;
       margin-bottom: 16px;
     }
@@ -220,11 +219,11 @@ export function generateLedgerPrintHTML(data: PrintDocumentData): string {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Space Mono', 'JetBrains Mono', monospace;
       font-size: 8pt;
       text-transform: uppercase;
       letter-spacing: 0.12em;
-      color: #5c5549;
+      color: #3D4641;
       margin-bottom: 6px;
     }
 
@@ -235,32 +234,32 @@ export function generateLedgerPrintHTML(data: PrintDocumentData): string {
     }
 
     .doc-title {
-      font-family: 'Playfair Display', Georgia, serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
       font-size: 20pt;
       font-weight: 700;
-      color: #1a1815;
+      color: #191C1A;
       letter-spacing: -0.01em;
       line-height: 1.15;
     }
 
     .doc-subtitle {
-      font-family: 'Playfair Display', Georgia, serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
       font-style: italic;
       font-size: 10pt;
-      color: #4a443a;
+      color: #2A302C;
       margin-top: 3px;
     }
 
     .audit-stamp {
       text-align: right;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Space Mono', 'JetBrains Mono', monospace;
       font-size: 8pt;
-      color: #5c5549;
+      color: #3D4641;
     }
 
     .audit-stamp strong {
       display: block;
-      color: #1a1815;
+      color: #191C1A;
       font-size: 9pt;
     }
 
@@ -271,20 +270,20 @@ export function generateLedgerPrintHTML(data: PrintDocumentData): string {
       gap: 10px;
       margin-bottom: 18px;
       background: #fbf9f5;
-      border: 1px solid #dfd7cb;
-      border-radius: 6px;
+      border: 1px solid #D1D1D6;
+      border-radius: 10px;
       padding: 10px 14px;
     }
 
     .vital-item {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Space Mono', 'JetBrains Mono', monospace;
     }
 
     .vital-label {
       font-size: 7.5pt;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: #6e6659;
+      color: #5F6B65;
       display: block;
     }
 
@@ -296,26 +295,26 @@ export function generateLedgerPrintHTML(data: PrintDocumentData): string {
     }
 
     .amount-income {
-      color: #1e6b47;
+      color: #34C759;
     }
 
     .amount-expense {
-      color: #9e2a2b;
+      color: #FF3B30;
     }
 
     .amount-transfer {
-      color: #1b4965;
+      color: #5856D6;
     }
 
     /* Section Title */
     .section-title {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Space Mono', 'JetBrains Mono', monospace;
       font-size: 8.5pt;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      color: #38332b;
-      border-bottom: 1px solid #1a1815;
+      color: #2A302C;
+      border-bottom: 1px solid #191C1A;
       padding-bottom: 4px;
       margin-bottom: 8px;
       margin-top: 16px;
@@ -331,12 +330,12 @@ export function generateLedgerPrintHTML(data: PrintDocumentData): string {
     }
 
     .ledger-table thead th {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Space Mono', 'JetBrains Mono', monospace;
       font-size: 7.5pt;
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      color: #5c5549;
-      border-bottom: 1px solid #c9bfb0;
+      color: #3D4641;
+      border-bottom: 1px solid #C7C7CC;
       padding: 6px 6px;
       text-align: left;
       font-weight: 600;
@@ -347,7 +346,7 @@ export function generateLedgerPrintHTML(data: PrintDocumentData): string {
     }
 
     .ledger-table tbody tr {
-      border-bottom: 1px solid #eae3d7;
+      border-bottom: 1px solid #F2F2F7;
       page-break-inside: avoid;
     }
 
@@ -358,15 +357,15 @@ export function generateLedgerPrintHTML(data: PrintDocumentData): string {
 
     .col-datetime {
       width: 85px;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Space Mono', 'JetBrains Mono', monospace;
       font-size: 7.5pt;
-      color: #4a443a;
+      color: #2A302C;
       white-space: nowrap;
     }
 
     .col-datetime .time {
       display: block;
-      color: #7d7363;
+      color: #5F6B65;
       font-size: 7pt;
     }
 
@@ -376,21 +375,21 @@ export function generateLedgerPrintHTML(data: PrintDocumentData): string {
 
     .desc-text {
       font-weight: 600;
-      color: #1a1815;
+      color: #191C1A;
     }
 
     .entry-notes {
-      font-family: 'Caveat', cursive;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
       font-size: 10.5pt;
-      color: #4a443a;
+      color: #2A302C;
       line-height: 1.2;
       margin-top: 2px;
     }
 
     .entry-tags {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Space Mono', 'JetBrains Mono', monospace;
       font-size: 7pt;
-      color: #7a7060;
+      color: #5F6B65;
       margin-top: 2px;
     }
 
@@ -399,28 +398,28 @@ export function generateLedgerPrintHTML(data: PrintDocumentData): string {
     }
 
     .cat-pill {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Space Mono', 'JetBrains Mono', monospace;
       font-size: 7pt;
-      background: #f2ede4;
-      border: 1px solid #dcd3c4;
+      background: #F2F2F7;
+      border: 1px solid #D1D1D6;
       padding: 1px 5px;
-      border-radius: 3px;
+      border-radius: 10px;
       display: inline-block;
       white-space: nowrap;
     }
 
     .col-acc {
       width: 120px;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Space Mono', 'JetBrains Mono', monospace;
       font-size: 7.5pt;
-      color: #4a443a;
+      color: #2A302C;
       white-space: nowrap;
     }
 
     .col-amount {
       width: 95px;
       text-align: right;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Space Mono', 'JetBrains Mono', monospace;
       font-weight: 700;
       font-size: 8.5pt;
       white-space: nowrap;
@@ -429,8 +428,8 @@ export function generateLedgerPrintHTML(data: PrintDocumentData): string {
     .empty-cell {
       text-align: center;
       padding: 24px;
-      color: #7d7363;
-      font-family: 'Playfair Display', Georgia, serif;
+      color: #5F6B65;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
       font-style: italic;
     }
 
@@ -444,16 +443,16 @@ export function generateLedgerPrintHTML(data: PrintDocumentData): string {
 
     .account-card {
       background: #fbf9f5;
-      border: 1px solid #dfd7cb;
-      border-radius: 5px;
+      border: 1px solid #D1D1D6;
+      border-radius: 10px;
       padding: 8px 10px;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Space Mono', 'JetBrains Mono', monospace;
     }
 
     .acc-name {
       font-weight: 700;
       font-size: 8pt;
-      color: #1a1815;
+      color: #191C1A;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -461,7 +460,7 @@ export function generateLedgerPrintHTML(data: PrintDocumentData): string {
 
     .acc-inst {
       font-size: 6.5pt;
-      color: #7a7060;
+      color: #5F6B65;
       text-transform: uppercase;
       margin-bottom: 3px;
     }
@@ -469,62 +468,62 @@ export function generateLedgerPrintHTML(data: PrintDocumentData): string {
     .acc-balance {
       font-size: 10pt;
       font-weight: 700;
-      color: #1a1815;
+      color: #191C1A;
     }
 
     /* Margin Notes */
     .margin-notes-box {
-      background: #faf7f0;
-      border: 1px solid #dfd7cb;
-      border-radius: 6px;
+      background: #F2F2F7;
+      border: 1px solid #D1D1D6;
+      border-radius: 10px;
       padding: 10px 14px;
       margin-top: 14px;
     }
 
     .note-meta {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Space Mono', 'JetBrains Mono', monospace;
       font-size: 7.5pt;
-      color: #5c5549;
+      color: #3D4641;
       margin-bottom: 6px;
       display: flex;
       gap: 6px;
     }
 
     .handwritten-reflection {
-      font-family: 'Caveat', cursive;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
       font-size: 13pt;
-      color: #2b261f;
+      color: #191C1A;
       line-height: 1.35;
     }
 
     .empty-reflection {
       font-size: 8pt;
       font-style: italic;
-      color: #8c8273;
+      color: #8E8E93;
     }
 
     /* Footer Seal */
     .ledger-footer {
-      border-top: 1px solid #1a1815;
+      border-top: 1px solid #191C1A;
       margin-top: 20px;
       padding-top: 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Space Mono', 'JetBrains Mono', monospace;
       font-size: 7pt;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: #5c5549;
+      color: #3D4641;
     }
 
     .stamp-badge {
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      border: 1px solid #1a1815;
+      border: 1px solid #191C1A;
       padding: 2px 7px;
-      border-radius: 3px;
+      border-radius: 10px;
       font-weight: 700;
     }
   </style>

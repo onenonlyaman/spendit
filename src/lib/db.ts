@@ -104,9 +104,69 @@ export async function getDb(): Promise<Database> {
       );
     `);
 
+    await seedStarterLedger(db);
+
     dbInstance = db;
     return db;
   })();
 
   return initPromise;
+}
+
+/**
+ * A ledger with no accounts and no categories cannot accept a single entry:
+ * transactions carry NOT NULL foreign keys to both. Seed the minimum viable
+ * ledger on first launch so the first thing a new user types actually saves.
+ *
+ * Runs only when the table is empty, so it never fights a real ledger or a
+ * restored backup, and never resurrects rows the user deliberately deleted.
+ */
+async function seedStarterLedger(db: Database): Promise<void> {
+  const now = Date.now();
+
+  const [{ count: accountCount }] = await db.select<{ count: number }[]>(
+    'SELECT COUNT(*) as count FROM accounts'
+  );
+
+  if (accountCount === 0) {
+    const starterAccounts = [
+      { id: 'acc_cash', name: 'Cash', type: 'cash', color: '#34C759', icon: 'Banknote' },
+      { id: 'acc_upi', name: 'UPI', type: 'wallet', color: '#007AFF', icon: 'Smartphone' },
+      { id: 'acc_bank', name: 'Bank Account', type: 'bank', color: '#5856D6', icon: 'Landmark' },
+    ];
+
+    for (const acc of starterAccounts) {
+      await db.execute(
+        `INSERT INTO accounts (id, name, type, balance, initial_balance, color, icon, created_at)
+         VALUES ($1, $2, $3, 0, 0, $4, $5, $6)`,
+        [acc.id, acc.name, acc.type, acc.color, acc.icon, now]
+      );
+    }
+  }
+
+  const [{ count: categoryCount }] = await db.select<{ count: number }[]>(
+    'SELECT COUNT(*) as count FROM categories'
+  );
+
+  if (categoryCount === 0) {
+    const starterCategories = [
+      { id: 'cat_food', name: 'Food & Drink', icon: 'UtensilsCrossed', color: '#FF9500' },
+      { id: 'cat_groceries', name: 'Groceries', icon: 'ShoppingBasket', color: '#34C759' },
+      { id: 'cat_transport', name: 'Transport', icon: 'Car', color: '#5AC8FA' },
+      { id: 'cat_bills', name: 'Bills & Utilities', icon: 'ReceiptText', color: '#FF3B30' },
+      { id: 'cat_shopping', name: 'Shopping', icon: 'ShoppingBag', color: '#FF2D55' },
+      { id: 'cat_health', name: 'Health', icon: 'HeartPulse', color: '#AF52DE' },
+      { id: 'cat_income', name: 'Income', icon: 'TrendingUp', color: '#34C759' },
+      { id: 'cat_transfer', name: 'Transfer', icon: 'ArrowRightLeft', color: '#8E8E93' },
+      { id: 'cat_other', name: 'Other', icon: 'Tag', color: '#8E8E93' },
+    ];
+
+    for (const cat of starterCategories) {
+      await db.execute(
+        `INSERT INTO categories (id, name, icon, color, monthly_budget, created_at)
+         VALUES ($1, $2, $3, $4, 0, $5)`,
+        [cat.id, cat.name, cat.icon, cat.color, now]
+      );
+    }
+  }
 }

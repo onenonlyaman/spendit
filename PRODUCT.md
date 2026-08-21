@@ -8,7 +8,9 @@ web
 
 ## Stack
 
-Delegated: Modern Web Application (Vite + React / TypeScript + TailwindCSS / Custom Ledger CSS tokens + Local-first IndexedDB / SQLite WASM for accounting engine integrity).
+Tauri v2 desktop application (primary shipping target) wrapping a Vite + React 18 + TypeScript + TailwindCSS front end with custom ledger CSS tokens. Persistence is a local SQLite file (`spendit.db`) via `@tauri-apps/plugin-sql`, opened and schema-migrated in `src/lib/db.ts`; all data access flows through `src/lib/api.ts`. Platform is recorded as `web` because the UI runs in a Tauri webview and follows web design language, not native iOS/Android conventions.
+
+The `server/` directory (Express + Postgres, port 5001) is legacy: no code under `src/` calls it. Treat it as dead unless the user revives it as a deliberate sync tier.
 
 ## Users
 
@@ -28,7 +30,8 @@ Unlike traditional banking dashboards and fintech SaaS apps (which push automate
 
 - **Daily Reflection & Logging Ritual**: Quick on-the-spot capture ("chai 15 cash", "groceries 84.50 card #supplies") and an end-of-day ledger closure review comparing daily spend against 7-day rolling baselines.
 - **Physical Notebook Metaphor**: Pages, margins, daily notes, ink stamps, textured paper backgrounds, handwritten callouts, bookmark ribbons, and monthly "Chapters".
-- **Environment**: Desktop and mobile web browsers with full offline persistence, instant responsiveness, privacy mode (obfuscating balances in public), and keyboard-first power navigation.
+- **Environment**: Installed Tauri desktop app on Windows (built via `npm run desktop:build`, x86_64-pc-windows-gnu), with full offline persistence, instant responsiveness, privacy mode (obfuscating balances in public), and keyboard-first power navigation. `npm run client` serves the same UI in a plain browser for development.
+- **Indian Financial Context**: Indian Rupee (`₹` INR) is the default currency, with UPI, GPay, and Paytm as first-class account and payment-method concepts, and local spend habits (chai, kirana, autos) as the vocabulary of everyday entries.
 
 ## Capabilities and Constraints
 
@@ -39,22 +42,30 @@ Unlike traditional banking dashboards and fintech SaaS apps (which push automate
 - **Financial Calendar & Monthly Chapters**: Day-by-day money heatmaps, no-spend day stamps, monthly overview chapters, and milestone markers.
 - **Analytics & Predictive Intelligence**: Safe-to-Spend calculations, monthly allowance runways, recurring commitment schedules, and what-if scenario simulators.
 - **Receipts & Attachments**: Local image/receipt storage tied to journal entries.
-- **Offline-First & Data Ownership**: 100% local client-side storage, encrypted backups, JSON/CSV ledger export/import.
+- **Offline-First & Data Ownership**: 100% local storage in an on-device SQLite file, encrypted backups, JSON/CSV ledger export/import. No cloud account, no telemetry, no third-party scraping.
+- **Custom Reminders**: User-defined reminders for bills and recurring commitments, delivered through the OS via `@tauri-apps/plugin-notification` (shipped in v1.1.2).
+- **Versioned Release & Self-Update**: Semver-tracked desktop releases with in-app update checks through `@tauri-apps/plugin-updater` (`src/lib/updater.ts`) — the one network call the product makes.
 
 ### Constraints
 - **Zero Predatory Gamification**: No pushy streaks or casino-style animations that distort spending psychology.
-- **No Cliché SaaS Aesthetics**: Strictly avoid cold neon purple gradients on dark slate, bloated bento-box cards with random icons, or sterile corporate charts.
+- **Restraint Over Decoration**: No ornament that does not carry information. No ambient gradient meshes, decorative glass, or bento-box card grids standing in for structure. See DESIGN.md for the enforced list.
 - **Accounting Rigor**: Transactions remain immutable ledger events; balances are derived truths.
+- **Update Channel Is the Only Network Dependency**: Everything except the updater check must work with no connectivity; an offline user loses nothing but update notices.
+- **Desktop-First Layout Reality**: Design for an installed desktop window first. Responsive behavior is still expected, but mobile-web is not a shipping target.
 
 ## Brand Commitments
 
-- **Tone & Voice**: Mindful, tactile, trustworthy, introspective, artisanal, and precise.
-- **Visual Anchor**: Warm cream/ivory paper (#FDFBF7 / #F7F3EB), deep fountain pen ink (#1A202C / #24303E), graphite pencils, archival ledger ruling lines, subtle deckle/torn paper edges, and human handwritten annotations (Caveat / Kalam / Patrick Hand alongside legible serif/sans typefaces).
+- **Tone & Voice**: Calm, precise, trustworthy, plain-spoken. Says what happened and what the user can do about it; never chirpy, never alarming about ordinary spending.
+- **Visual Anchor**: Apple-esque desktop restraint — "The Quiet Instrument". iOS/macOS materials, inset-grouped lists, system accent semantics, Plus Jakarta Sans, true-black dark mode, tabular numerals. DESIGN.md is the normative record.
+- **Retired Direction**: An earlier warm-paper / handwritten-diary aesthetic (ruled paper, wax seals, Caveat/Kalam handwriting, `archival-*` palette) was deliberately replaced. Product nouns like "folio", "ledger", and "jars" survive as vocabulary; the materials do not. Do not reintroduce them.
 
 ## Evidence on Hand
 
 - Core requirements and functional roadmap defined in the user brief.
 - Initial product specification document establishing ledger aesthetics and digital-accounting duality.
+- Working implementation as evidence: `src/lib/db.ts` (SQLite schema), `src/lib/api.ts` (data layer), `src/context/FinanceContext.tsx` (state), `src/lib/nlpParser.ts` (natural-language capture), `src/lib/notifications.ts`, `src/lib/updater.ts`.
+- `DESIGN.md` and `docs/` record the incumbent visual system; `server/` is legacy code, not evidence of product direction.
+- No testimonials, customers, benchmarks, pricing, or press exist. Future work must not fabricate them.
 
 ## Product Principles
 
@@ -65,7 +76,7 @@ Unlike traditional banking dashboards and fintech SaaS apps (which push automate
 
 ## Accessibility & Inclusion
 
-- High contrast ink-on-paper legibility conforming to WCAG AAA standards for text.
-- Full keyboard navigation for diary page flipping, quick-entry modal, and ledger filtering.
+- WCAG AA contrast as the enforced floor for all text and meaningful UI, with a 13px minimum type size.
+- Full keyboard navigation for diary page flipping, quick-entry modal, and ledger filtering, including Escape-to-close and focus containment in every dialog.
 - Screen reader accessibility across diary entries, balance callouts, and tabular ledger views.
-- Reduced motion support respecting user OS preferences.
+- Reduced motion support that respects the OS preference by default; an in-app performance mode may suppress motion further but never override the preference upward.

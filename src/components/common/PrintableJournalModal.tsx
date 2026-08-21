@@ -114,14 +114,14 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
         {/* Modal Toolbar */}
         <div className="bg-black/[0.02] dark:bg-white/[0.03] px-5 py-3.5 border-b border-black/[0.06] dark:border-white/[0.08] flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
           <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-xl bg-apple-blue/15 text-apple-blue flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-apple-blue/15 text-accent flex items-center justify-center">
               <Printer className="w-4 h-4" />
             </div>
             <div>
               <h3 className="font-sans font-bold text-sm text-ink-900 dark:text-ink-100">
                 Vector Archival Print & Export
               </h3>
-              <p className="text-[11px] font-mono text-ink-400">
+              <p className="text-xs text-secondary">
                 High-DPI printable PDF document
               </p>
             </div>
@@ -132,19 +132,19 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
             <div className="apple-segmented-picker !p-0.5">
               <button
                 onClick={() => setScope('day')}
-                className={`apple-segmented-item ${scope === 'day' ? 'apple-segmented-item-active font-semibold' : 'text-ink-500'}`}
+                className={`apple-segmented-item ${scope === 'day' ? 'apple-segmented-item-active font-semibold' : 'text-secondary'}`}
               >
                 Today's Folio
               </button>
               <button
                 onClick={() => setScope('month')}
-                className={`apple-segmented-item ${scope === 'month' ? 'apple-segmented-item-active font-semibold' : 'text-ink-500'}`}
+                className={`apple-segmented-item ${scope === 'month' ? 'apple-segmented-item-active font-semibold' : 'text-secondary'}`}
               >
                 Monthly Chapter
               </button>
               <button
                 onClick={() => setScope('all')}
-                className={`apple-segmented-item ${scope === 'all' ? 'apple-segmented-item-active font-semibold' : 'text-ink-500'}`}
+                className={`apple-segmented-item ${scope === 'all' ? 'apple-segmented-item-active font-semibold' : 'text-secondary'}`}
               >
                 Complete Ledger
               </button>
@@ -152,7 +152,7 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
 
             <button
               onClick={handlePrint}
-              className="px-3.5 py-1.5 bg-apple-blue hover:bg-apple-blue/90 text-white font-sans text-xs font-semibold rounded-xl shadow-sm flex items-center space-x-1.5 transition-all active:scale-95"
+              className="px-3.5 py-1.5 bg-accent text-white font-sans text-xs font-semibold rounded-xl shadow-sm flex items-center space-x-1.5 transition-all active:scale-95"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Print / Save PDF</span>
@@ -160,7 +160,7 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-ink-400"
+              className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-secondary"
             >
               <X className="w-4 h-4" />
             </button>
@@ -172,7 +172,7 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
           <div className="max-w-3xl mx-auto bg-white text-zinc-900 p-6 sm:p-10 rounded-2xl shadow-apple-card border border-black/10 font-sans">
             {/* Top Seal & Title */}
             <div className="border-b border-zinc-900 pb-4 mb-5">
-              <div className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-zinc-500 mb-2">
+              <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-2">
                 <div className="flex items-center space-x-2">
                   <span className="font-bold text-zinc-900">SpendIt</span>
                   <span>•</span>
@@ -196,7 +196,7 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
                 </div>
 
                 <div className="text-right font-mono text-xs">
-                  <span className="block text-zinc-400 text-[10px] uppercase">Verified Register</span>
+                  <span className="block text-zinc-400 text-xs uppercase">Verified Register</span>
                   <span className="font-semibold text-zinc-900">{new Date().toLocaleDateString('en-US')}</span>
                 </div>
               </div>
@@ -205,19 +205,19 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
             {/* Financial Vitals Summary Strip */}
             <div className="grid grid-cols-3 gap-3 p-3.5 rounded-xl bg-zinc-50 border border-zinc-200 mb-5 font-mono text-xs">
               <div>
-                <span className="text-[10px] text-zinc-500 uppercase block">Total Inflow</span>
+                <span className="text-xs text-zinc-500 uppercase block">Total Inflow</span>
                 <span className="font-bold text-sm text-apple-green">
                   +{formatCurrency(totalIncome, currencySymbol)}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-zinc-500 uppercase block">Total Outflow</span>
+                <span className="text-xs text-zinc-500 uppercase block">Total Outflow</span>
                 <span className="font-bold text-sm text-apple-red">
                   -{formatCurrency(totalExpense, currencySymbol)}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-zinc-500 uppercase block">Net Balance</span>
+                <span className="text-xs text-zinc-500 uppercase block">Net Balance</span>
                 <span className="font-bold text-sm text-zinc-900">
                   {formatCurrency(totalIncome - totalExpense, currencySymbol)}
                 </span>
@@ -237,7 +237,7 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
               ) : (
                 <table className="w-full text-left text-xs font-mono border-collapse">
                   <thead>
-                    <tr className="border-b border-zinc-200 text-[10px] uppercase text-zinc-400">
+                    <tr className="border-b border-zinc-200 text-xs uppercase text-zinc-400">
                       <th className="py-1.5 pr-2">Date/Time</th>
                       <th className="py-1.5 px-2">Description & Notes</th>
                       <th className="py-1.5 px-2">Category</th>
@@ -253,23 +253,23 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
                         <tr key={t.id} className="align-top">
                           <td className="py-2 pr-2 text-zinc-600 whitespace-nowrap">
                             <span className="block">{t.date}</span>
-                            <span className="text-[10px] text-zinc-400">{t.time}</span>
+                            <span className="text-xs text-zinc-400">{t.time}</span>
                           </td>
                           <td className="py-2 px-2">
                             <span className="font-semibold text-zinc-900 block font-sans">{t.description}</span>
                             {t.notes && (
                               <span className="text-xs italic text-zinc-600 block">
-                                "{t.notes}"
+ "{t.notes}"
                               </span>
                             )}
                             {t.tags && t.tags.length > 0 && (
-                              <span className="text-[10px] text-zinc-400 block mt-0.5">
+                              <span className="text-xs text-zinc-400 block mt-0.5">
                                 {t.tags.join(' ')}
                               </span>
                             )}
                           </td>
                           <td className="py-2 px-2 text-zinc-700 whitespace-nowrap">
-                            <span className="px-1.5 py-0.5 rounded bg-zinc-100 border border-zinc-200 text-[10px]">
+                            <span className="px-1.5 py-0.5 rounded bg-zinc-100 border border-zinc-200 text-xs">
                               {cat?.name || 'General'}
                             </span>
                           </td>
@@ -281,7 +281,7 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
                               t.type === 'income'
                                 ? 'text-apple-green'
                                 : t.type === 'transfer'
-                                ? 'text-apple-blue'
+                                ? 'text-accent'
                                 : 'text-apple-red'
                             }`}
                           >
@@ -311,7 +311,7 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
                   </div>
                   {currentDayNote.reflection ? (
                     <p className="text-xs text-zinc-700 italic">
-                      "{currentDayNote.reflection}"
+ "{currentDayNote.reflection}"
                     </p>
                   ) : (
                     <p className="text-xs text-zinc-400 italic">No reflection recorded.</p>
@@ -329,7 +329,7 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {accounts.map(acc => (
                     <div key={acc.id} className="p-2 rounded-lg bg-zinc-50 border border-zinc-200 text-xs font-mono">
-                      <span className="text-zinc-500 block truncate text-[10px]">{acc.name}</span>
+                      <span className="text-zinc-500 block truncate text-xs">{acc.name}</span>
                       <span className="font-bold text-zinc-900 block mt-0.5">
                         {formatCurrency(acc.balance, currencySymbol)}
                       </span>
@@ -340,7 +340,7 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
             )}
 
             {/* Stamp Footer */}
-            <div className="mt-6 pt-3 border-t border-zinc-300 flex items-center justify-between text-[10px] font-mono text-zinc-400">
+            <div className="mt-6 pt-3 border-t border-zinc-300 flex items-center justify-between text-xs font-mono text-zinc-400">
               <div className="flex items-center space-x-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-apple-green" />
                 <span>AUDITED FOLIO • SPENDIT FINANCIAL ARCHIVES</span>

@@ -114,9 +114,9 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
             <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
               Edit Transaction
             </h3>
-            <span className="text-[11px] font-mono text-ink-400">ID: {transaction.id.slice(0, 8)}</span>
+            <span className="text-xs text-secondary">ID: {transaction.id.slice(0, 8)}</span>
           </div>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-ink-400">
+          <button onClick={onClose} className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-secondary">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -132,12 +132,12 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 className={`flex-1 py-1.5 rounded-lg font-sans text-xs font-semibold capitalize transition-all flex items-center justify-center space-x-1.5 ${
                   type === t
                     ? 'bg-white dark:bg-[#2C2C2E] text-ink-900 dark:text-ink-100 shadow-sm'
-                    : 'text-ink-500 hover:text-ink-800 dark:hover:text-ink-200'
+                    : 'text-ink-600 dark:text-ink-300 hover:text-ink-900 dark:hover:text-white'
                 }`}
               >
                 {t === 'expense' && <TrendingDown className="w-3.5 h-3.5 text-apple-red" />}
                 {t === 'income' && <TrendingUp className="w-3.5 h-3.5 text-apple-green" />}
-                {t === 'transfer' && <ArrowRightLeft className="w-3.5 h-3.5 text-apple-blue" />}
+                {t === 'transfer' && <ArrowRightLeft className="w-3.5 h-3.5 text-accent" />}
                 <span>{t}</span>
               </button>
             ))}
@@ -152,7 +152,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 required
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 outline-none focus:ring-2 focus:ring-apple-blue"
+                className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 focus-ring"
               />
             </div>
             <div>
@@ -164,7 +164,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 inputMode="decimal"
                 value={amount}
                 onChange={e => setAmount(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] font-mono font-bold text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 outline-none focus:ring-2 focus:ring-apple-blue"
+                className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] font-mono font-bold text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 focus-ring"
               />
             </div>
           </div>
@@ -178,7 +178,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               <select
                 value={accountId}
                 onChange={e => setAccountId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 outline-none"
+                className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 focus-ring"
               >
                 {accounts.map(a => (
                   <option key={a.id} value={a.id}>{a.name}</option>
@@ -192,7 +192,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 <select
                   value={destinationAccountId}
                   onChange={e => setDestinationAccountId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 outline-none"
+                  className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 focus-ring"
                 >
                   {accounts.map(a => (
                     <option key={a.id} value={a.id} disabled={a.id === accountId}>
@@ -207,7 +207,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 <select
                   value={categoryId}
                   onChange={e => setCategoryId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 outline-none"
+                  className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 focus-ring"
                 >
                   {categories.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
@@ -225,7 +225,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 type="date"
                 value={date}
                 onChange={e => setDate(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 outline-none"
+                className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 focus-ring"
               />
             </div>
             <div>
@@ -234,7 +234,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 type="time"
                 value={time}
                 onChange={e => setTime(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 outline-none"
+                className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 focus-ring"
               />
             </div>
           </div>
@@ -247,7 +247,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               placeholder="#chai, #swiggy, #office"
               value={tagsText}
               onChange={e => setTagsText(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 outline-none focus:ring-2 focus:ring-apple-blue"
+              className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 focus-ring"
             />
           </div>
 
@@ -258,13 +258,13 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               placeholder="Context or notes about this spend..."
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 text-xs border border-black/10 dark:border-white/10 outline-none focus:ring-2 focus:ring-apple-blue"
+              className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 text-xs border border-black/10 dark:border-white/10 focus-ring"
             />
           </div>
 
           {/* Receipt Upload & Preview */}
           <div className="flex items-center justify-between pt-1">
-            <label className="cursor-pointer text-xs font-semibold text-apple-blue hover:underline flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-apple-blue/10 border border-apple-blue/20">
+            <label className="cursor-pointer text-xs font-semibold text-accent hover:underline flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-apple-blue/10 border border-apple-blue/20">
               <Paperclip className="w-3.5 h-3.5" />
               <span>{receiptUrl ? 'Replace Receipt Image' : 'Attach Receipt Image'}</span>
               <input type="file" accept="image/*" onChange={handleReceiptUpload} className="hidden" />
@@ -273,7 +273,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               <button
                 type="button"
                 onClick={() => setReceiptUrl('')}
-                className="text-apple-red hover:underline font-mono text-[11px]"
+                className="text-apple-red hover:underline font-mono text-xs"
               >
                 Remove Receipt
               </button>
@@ -322,7 +322,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 type="submit"
-                className="px-4 py-2 bg-apple-blue hover:bg-apple-blue/90 text-white font-semibold rounded-xl text-xs shadow-sm flex items-center space-x-1"
+                className="px-4 py-2 bg-accent text-white font-semibold rounded-xl text-xs shadow-sm flex items-center space-x-1"
               >
                 <Save className="w-3.5 h-3.5" />
                 <span>Save Changes</span>

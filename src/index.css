@@ -2,134 +2,180 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --paper-pattern-color: rgba(222, 205, 180, 0.4);
-    --paper-line-color: rgba(207, 184, 151, 0.35);
-    --margin-line-color: rgba(184, 58, 58, 0.25);
+
+/* ========================================================================= */
+/* 1. ROOT & DARK UI SCHEMES AND SYSTEM VARIABLES                           */
+/* ========================================================================= */
+:root {
+  color-scheme: light;
+  --bg-canvas: #F8F8FA;
+  --bg-card: #FFFFFF;
+  --bg-card-glass: rgba(255, 255, 255, 0.72);
+  --ring-focus: #007AFF;
+  --ring-offset: #F8F8FA;
+  --ink-primary: #191C1A;
+  --ink-secondary: #5F6B65;
+  --border-subtle: rgba(0, 0, 0, 0.08);
+}
+
+html.dark,
+.dark {
+  color-scheme: dark;
+  --bg-canvas: #000000;
+  --bg-card: #1C1C1E;
+  --bg-card-glass: rgba(28, 28, 30, 0.72);
+  --ring-focus: #0A84FF;
+  --ring-offset: #1C1C1E;
+  --ink-primary: #F8F8FA;
+  --ink-secondary: #9BA8A1;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+}
+
+/* ========================================================================= */
+/* 2. SECONDARY TEXT & ACCENT: theme-paired for contrast                     */
+/* ========================================================================= */
+.text-secondary {
+  color: #5F6B65;
+}
+
+.dark .text-secondary {
+  color: #9BA8A1;
+}
+
+.text-accent {
+  color: #0067D6;
+}
+
+.dark .text-accent {
+  color: #4DA3FF;
+}
+
+.bg-accent {
+  background-color: #0069DB;
+}
+
+.bg-accent:hover {
+  background-color: #0058B8;
+}
+
+.dark .bg-accent {
+  background-color: #0A6FD8;
+}
+
+.dark .bg-accent:hover {
+  background-color: #0A84FF;
+}
+
+.border-accent {
+  border-color: #0069DB;
+}
+
+.dark .border-accent {
+  border-color: #0A6FD8;
+}
+
+.hover\:bg-accent:hover {
+  background-color: #0069DB;
+  color: #ffffff;
+}
+
+.dark .hover\:bg-accent:hover {
+  background-color: #0A6FD8;
+  color: #ffffff;
+}
+
+.hover\:text-accent:hover {
+  color: #0067D6;
+}
+
+.dark .hover\:text-accent:hover {
+  color: #4DA3FF;
+}
+
+/* ========================================================================= */
+/* 3. FOCUS RINGS: Apple HIG Curved Radius Focus Rings                        */
+/* ========================================================================= */
+/*
+ * In WebKit / Chromium, native outline is square and ignores border-radius.
+ * Using dual box-shadow guarantees the focus ring hugs the exact corner radius
+ * of any button, input, pill, card, or switch (rounded-full, rounded-2xl, etc.).
+ */
+.focus-ring,
+:where(button, a, input, select, textarea, [tabindex]) {
+  outline: none !important;
+}
+
+:where(button, a, input:not(.no-focus-ring), select, textarea, [tabindex]:not(.no-focus-ring)):focus-visible,
+.focus-ring:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 2px var(--ring-offset, #F8F8FA), 0 0 0 4.5px var(--ring-focus, #007AFF) !important;
+}
+
+.dark :where(button, a, input:not(.no-focus-ring), select, textarea, [tabindex]:not(.no-focus-ring)):focus-visible,
+.dark .focus-ring:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring-offset, #1C1C1E), 0 0 0 4.5px var(--ring-focus, #0A84FF) !important;
+}
+
+.no-focus-ring,
+.no-focus-ring:focus,
+.no-focus-ring:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* ========================================================================= */
+/* 4. DROPDOWN MENUS (<select> & <option>): Theme Synced Across Light/Dark   */
+/* ========================================================================= */
+select {
+  color-scheme: light;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #191C1A;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.dark select,
+html.dark select {
+  color-scheme: dark;
+  background-color: #1C1C1E;
+  color: #F8F8FA;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Force native select dropdown menu popup options to respect theme */
+option {
+  background-color: #FFFFFF !important;
+  color: #191C1A !important;
+}
+
+.dark option,
+html.dark option {
+  background-color: #1C1C1E !important;
+  color: #F8F8FA !important;
+}
+
+optgroup {
+  background-color: #F2F2F7;
+  color: #5F6B65;
+}
+
+.dark optgroup,
+html.dark optgroup {
+  background-color: #2C2C2E;
+  color: #9BA8A1;
+}
+
+/* ========================================================================= */
+/* REDUCED MOTION: honor the OS preference, always                           */
+/* ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-
-  .dark {
-    --paper-pattern-color: rgba(56, 54, 48, 0.5);
-    --paper-line-color: rgba(65, 62, 55, 0.45);
-    --margin-line-color: rgba(184, 58, 58, 0.3);
-  }
-}
-
-/* Custom Paper Textures & Ruled Pages */
-.ruled-paper {
-  background-color: #FCFAF6;
-  background-image: 
-    linear-gradient(to right, transparent 54px, var(--margin-line-color) 54px, var(--margin-line-color) 56px, transparent 56px),
-    repeating-linear-gradient(to bottom, transparent 0, transparent 31px, var(--paper-line-color) 31px, var(--paper-line-color) 32px);
-  background-size: 100% 100%, 100% 32px;
-}
-
-.dark .ruled-paper {
-  background-color: #1F1E1B;
-}
-
-.grid-paper {
-  background-image: 
-    linear-gradient(to right, var(--paper-pattern-color) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--paper-pattern-color) 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-
-.dotted-paper {
-  background-image: radial-gradient(var(--paper-pattern-color) 1px, transparent 1px);
-  background-size: 16px 16px;
-}
-
-/* Authentic Rubber Stamp Effects */
-.rubber-stamp {
-  display: inline-block;
-  text-transform: uppercase;
-  font-family: 'Space Mono', monospace;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  padding: 0.25rem 0.6rem;
-  border: 2px dashed currentColor;
-  border-radius: 4px;
-  mask-image: radial-gradient(circle, rgba(0,0,0,1) 85%, rgba(0,0,0,0.6) 100%);
-  user-select: none;
-}
-
-.stamp-sealed {
-  color: #B83A3A;
-  border: 2.5px solid #B83A3A;
-  transform: rotate(-3deg);
-  box-shadow: 0 0 0 1px #B83A3A;
-  animation: stamp-drop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-@keyframes stamp-drop {
-  0% {
-    opacity: 0;
-    transform: scale(1.4) rotate(8deg);
-  }
-  60% {
-    transform: scale(0.95) rotate(-4deg);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) rotate(-3deg);
-  }
-}
-
-.stamp-reconciled {
-  color: #2A6F4E;
-  border: 2px solid #2A6F4E;
-  transform: rotate(1.5deg);
-}
-
-.stamp-nospend {
-  color: #C07D2B;
-  border: 2px dashed #C07D2B;
-  transform: rotate(-2deg);
-}
-
-/* Wax Seal Medallion */
-.wax-seal-medallion {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #D44848 0%, #B83A3A 60%, #8A2525 100%);
-  box-shadow: 0 3px 8px rgba(138, 37, 37, 0.4), inset 0 2px 3px rgba(255, 255, 255, 0.25), inset 0 -2px 3px rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #FCFAF6;
-  font-family: 'Newsreader', serif;
-  font-weight: 700;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  animation: stamp-drop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-@keyframes ribbon-sway {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(4deg); }
-  75% { transform: rotate(-3deg); }
-}
-
-.ribbon-active {
-  animation: ribbon-sway 0.8s ease-in-out;
-}
-
-/* Washi Tape Ribbon Effect */
-.washi-tape {
-  background-color: rgba(245, 239, 228, 0.85);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  border-left: 3px dashed rgba(180, 160, 130, 0.4);
-  border-right: 3px dashed rgba(180, 160, 130, 0.4);
-}
-
-/* Handwritten Notes Styling */
-.handwriting-note {
-  font-family: 'Caveat', 'Kalam', cursive;
-  font-size: 1.25rem;
-  line-height: 1.4;
-  letter-spacing: 0.02em;
 }
 
 /* Universal Scrollbar Elimination for Horizontal & Seamless Containers */
@@ -197,7 +243,7 @@
 /* Apple HIG Global Scrollbar Styling (Minimal, thin for vertical only) */
 ::-webkit-scrollbar {
   width: 6px;
-  height: 0px; /* Never show horizontal scrollbars globally */
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -223,17 +269,17 @@
 
 /* Apple HIG Glass Surfaces & Inset Grouped Hierarchy */
 .apple-glass-card {
-  background: rgba(255, 255, 255, 0.68);
-  backdrop-filter: blur(28px) saturate(1.9) brightness(1.02);
-  -webkit-backdrop-filter: blur(28px) saturate(1.9) brightness(1.02);
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(28px) saturate(1.4);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4);
   border: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0, 0, 0, 0.02);
 }
 
 .dark .apple-glass-card {
-  background: rgba(28, 28, 34, 0.65);
-  backdrop-filter: blur(32px) saturate(2.0) brightness(1.1);
-  -webkit-backdrop-filter: blur(32px) saturate(2.0) brightness(1.1);
+  background: rgba(28, 28, 30, 0.88);
+  backdrop-filter: blur(32px) saturate(1.4);
+  -webkit-backdrop-filter: blur(32px) saturate(1.4);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.7);
 }
@@ -242,16 +288,16 @@
   border-radius: 18px;
   overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.07);
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(24px) saturate(1.8);
-  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
 }
 
 .dark .apple-inset-group {
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(28, 28, 34, 0.65);
-  backdrop-filter: blur(28px) saturate(1.9);
-  -webkit-backdrop-filter: blur(28px) saturate(1.9);
+  background: rgba(28, 28, 30, 0.9);
+  backdrop-filter: blur(28px) saturate(1.4);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4);
 }
 
 .apple-segmented-picker {
@@ -268,7 +314,7 @@
 .apple-segmented-item {
   padding: 5px 14px;
   border-radius: 10px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -285,21 +331,30 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
-/* Bookmark Ribbon */
-.bookmark-ribbon {
-  position: absolute;
-  top: 0;
-  right: 28px;
-  width: 24px;
-  height: 48px;
-  background-color: #B83A3A;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.25);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%);
-  transition: transform 0.2s ease;
+
+/* ========================================================================= */
+/* OVERLAY SURFACE: material for things that sit in front of content         */
+/* ========================================================================= */
+.overlay-surface {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid rgba(0, 0, 0, 0.07);
 }
 
-.bookmark-ribbon:hover {
-  transform: translateY(4px);
+.dark .overlay-surface {
+  background: rgba(28, 28, 30, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.performance-mode .overlay-surface {
+  background: #ffffff !important;
+}
+
+.dark.performance-mode .overlay-surface,
+.dark .performance-mode .overlay-surface,
+.performance-mode.dark .overlay-surface {
+  background: #1C1C1E !important;
 }
 
 /* ========================================================================= */
@@ -352,8 +407,7 @@
   header,
   footer,
   .no-print,
-  button:not(.print-keep),
-  .bookmark-ribbon {
+  button:not(.print-keep) {
     display: none !important;
   }
 

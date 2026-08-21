@@ -38,6 +38,8 @@ interface FinanceContextType {
   performanceMode: boolean;
   isLoading: boolean;
   searchQuery: string;
+  /** The entry just written, so the ledger can show where it landed. */
+  recentlyAddedId: string | null;
 
   // Navigation Setters
   setDiaryDate: (date: string) => void;
@@ -147,6 +149,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  // The one authored moment in the app: a new entry settling into the ledger.
+  // Without it the row simply exists, and the user has to hunt for what they
+  // just wrote.
+  const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
+
   // Sync theme with document element and color-scheme
   useEffect(() => {
     if (theme === 'dark') {
@@ -215,7 +222,23 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+
+      // Never steal a keystroke that belongs to a control the user is editing.
+      // SELECT matters as much as INPUT: type-ahead inside a dropdown is how
+      // people pick an option, and single-letter shortcuts used to eat it.
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT' ||
+        target.isContentEditable ||
+        target.closest('[contenteditable="true"]')
+      ) {
+        return;
+      }
+
+      // A dialog owns the keyboard while it is open; navigating the page behind
+      // it would leave the user somewhere they cannot see.
+      if (document.querySelector('[role="dialog"]')) {
         return;
       }
 
@@ -261,6 +284,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const addTransaction = async (txnData: Omit<Transaction, 'id' | 'createdAt'>): Promise<Transaction> => {
     const created = await api.createTransaction(txnData);
     setRawTransactions(prev => [created, ...prev]);
+    setRecentlyAddedId(created.id);
+    window.setTimeout(() => {
+      setRecentlyAddedId(current => (current === created.id ? null : current));
+    }, 2400);
     return created;
   };
 
@@ -499,6 +526,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         performanceMode,
         isLoading,
         searchQuery,
+        recentlyAddedId,
         setSearchQuery,
         setDiaryDate: setCurrentDiaryDate,
         goToPreviousDay,

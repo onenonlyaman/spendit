@@ -163,7 +163,7 @@ export const api = {
       id,
       name: cat.name,
       icon: cat.icon || 'Tag',
-      color: cat.color || '#C07D2B',
+      color: cat.color || '#8E8E93',
       monthlyBudget: cat.monthlyBudget,
     };
   },
@@ -434,7 +434,7 @@ export const api = {
       currentAmount: 0,
       targetDate: goal.targetDate,
       category: goal.category || 'Savings',
-      color: goal.color || '#C07D2B',
+      color: goal.color || '#5856D6',
       icon: goal.icon || 'Target',
       notes: goal.notes,
     };

@@ -25,7 +25,7 @@ export const AppleSwitch: React.FC<AppleSwitchProps> = ({
 }) => {
   const colorClasses = {
     green: 'bg-apple-green',
-    blue: 'bg-apple-blue',
+    blue: 'bg-accent',
     indigo: 'bg-apple-indigo',
     orange: 'bg-apple-orange',
   };
@@ -66,7 +66,7 @@ export const AppleSwitch: React.FC<AppleSwitchProps> = ({
         }
       }}
       className={cn(
-        'relative inline-flex items-center rounded-full transition-colors duration-200 focus:outline-none flex-shrink-0 cursor-pointer',
+        'relative inline-flex items-center rounded-full transition-colors duration-200 focus-ring flex-shrink-0 cursor-pointer',
         cfg.track,
         checked ? colorClasses[color] : 'bg-black/15 dark:bg-white/20',
         disabled && 'opacity-40 cursor-not-allowed',

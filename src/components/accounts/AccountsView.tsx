@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   AlertTriangle,
@@ -20,6 +21,8 @@ import {
   X,
 } from 'lucide-react';
 import { useFinance } from '../../context/FinanceContext';
+import { useToast } from '../../context/ToastContext';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { formatCurrency } from '../../lib/utils';
 import { Account, AccountType } from '../../types';
 import { TransferModal } from './TransferModal';
@@ -35,6 +38,7 @@ export const AccountsView: React.FC = () => {
     deleteAccount,
   } = useFinance();
 
+  const { success, error } = useToast();
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [transferSourceId, setTransferSourceId] = useState<string | undefined>(undefined);
   const [expandedAccountId, setExpandedAccountId] = useState<string | null>(null);
@@ -132,10 +136,34 @@ export const AccountsView: React.FC = () => {
     setEditingAccount(null);
   };
 
+  /**
+   * Deleting an account cascades to every transaction booked against it, so the
+   * dialog has to state that count rather than reassure the user it is safe.
+   */
+  const doomedTransactionCount = deletingAccount
+    ? transactions.filter(
+        t => t.accountId === deletingAccount.id || t.destinationAccountId === deletingAccount.id
+      ).length
+    : 0;
+
   const handleDeleteConfirm = async () => {
     if (!deletingAccount) return;
-    await deleteAccount(deletingAccount.id);
-    setDeletingAccount(null);
+    const name = deletingAccount.name;
+    try {
+      await deleteAccount(deletingAccount.id);
+      setDeletingAccount(null);
+      success(
+        `Deleted ${name}`,
+        doomedTransactionCount > 0
+          ? `${doomedTransactionCount} linked ${doomedTransactionCount === 1 ? 'entry was' : 'entries were'} removed with it.`
+          : undefined
+      );
+    } catch (err) {
+      error(
+        `Could not delete ${name}`,
+        err instanceof Error ? err.message : 'The account is unchanged.'
+      );
+    }
   };
 
   const getAccountIcon = (type: AccountType, name: string) => {
@@ -161,7 +189,7 @@ export const AccountsView: React.FC = () => {
       <div className="apple-glass-card rounded-3xl p-6 sm:p-8 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <span className="text-xs uppercase font-mono tracking-wider text-ink-400 dark:text-ink-500 font-semibold block">
+            <span className="text-xs uppercase tracking-wide text-secondary font-semibold block">
               Portfolio & Liquidity
             </span>
             <h1 className="font-sans font-bold text-2xl sm:text-3xl text-ink-900 dark:text-ink-100 tracking-tight mt-0.5">
@@ -175,7 +203,7 @@ export const AccountsView: React.FC = () => {
                 setTransferSourceId(undefined);
                 setIsTransferOpen(true);
               }}
-              className="px-3.5 py-2 rounded-xl bg-apple-blue/10 hover:bg-apple-blue/15 text-apple-blue text-xs font-semibold flex items-center space-x-1.5 transition-colors"
+              className="px-3.5 py-2 rounded-xl bg-apple-blue/10 hover:bg-apple-blue/15 text-accent text-xs font-semibold flex items-center space-x-1.5 transition-colors"
             >
               <ArrowRightLeft className="w-3.5 h-3.5" />
               <span>Transfer</span>
@@ -183,7 +211,7 @@ export const AccountsView: React.FC = () => {
 
             <button
               onClick={() => setIsCreatingAccount(true)}
-              className="px-3.5 py-2 rounded-xl bg-apple-blue hover:bg-apple-blue/90 text-white text-xs font-semibold flex items-center space-x-1.5 shadow-sm transition-all active:scale-95"
+              className="px-3.5 py-2 rounded-xl bg-accent text-white text-xs font-semibold flex items-center space-x-1.5 shadow-sm transition-all active:scale-95"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>New Account</span>
@@ -194,21 +222,21 @@ export const AccountsView: React.FC = () => {
         {/* Asset vs Liability Metric Breakdown Pills */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
           <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]">
-            <span className="text-[11px] font-mono text-ink-500 dark:text-ink-400 block">Total Liquid Assets</span>
+            <span className="text-xs text-secondary block">Total Liquid Assets</span>
             <span className="font-mono font-bold text-base sm:text-lg text-apple-green block mt-0.5">
               {formatCurrency(totalAssets, currencySymbol, privacyMode)}
             </span>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]">
-            <span className="text-[11px] font-mono text-ink-500 dark:text-ink-400 block">Credit & Liabilities</span>
+            <span className="text-xs text-secondary block">Credit & Liabilities</span>
             <span className="font-mono font-bold text-base sm:text-lg text-apple-red block mt-0.5">
               {formatCurrency(totalLiabilities, currencySymbol, privacyMode)}
             </span>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06] col-span-2 sm:col-span-1">
-            <span className="text-[11px] font-mono text-ink-500 dark:text-ink-400 block">Active Accounts</span>
+            <span className="text-xs text-secondary block">Active Accounts</span>
             <span className="font-mono font-bold text-base sm:text-lg text-ink-900 dark:text-ink-100 block mt-0.5">
               {accounts.length} Sources
             </span>
@@ -247,19 +275,19 @@ export const AccountsView: React.FC = () => {
                   </div>
 
                   <div className="flex items-center space-x-1" onClick={e => e.stopPropagation()}>
-                    <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-ink-600 dark:text-ink-400 font-semibold mr-1">
+                    <span className="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-secondary font-semibold mr-1">
                       {acc.type}
                     </span>
                     <button
                       onClick={() => handleOpenEdit(acc)}
-                      className="p-1.5 rounded-lg text-ink-400 hover:text-ink-900 dark:hover:text-ink-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                      className="p-1.5 rounded-lg text-secondary hover:text-ink-900 dark:hover:text-ink-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                       title="Edit Account"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => setDeletingAccount(acc)}
-                      className="p-1.5 rounded-lg text-ink-400 hover:text-apple-red hover:bg-apple-red/10 transition-colors"
+                      className="p-1.5 rounded-lg text-secondary hover:text-apple-red hover:bg-apple-red/10 transition-colors"
                       title="Delete Account"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -270,7 +298,7 @@ export const AccountsView: React.FC = () => {
                 <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
                   {acc.name}
                 </h3>
-                <p className="text-xs font-mono text-ink-500 mb-4">
+                <p className="text-xs text-secondary mb-4">
                   {acc.institution || (acc.type === 'cash' ? 'Physical Cash' : 'Personal Wallet')}
                   {acc.accountNumberMasked ? ` • ${acc.accountNumberMasked}` : ''}
                 </p>
@@ -278,7 +306,7 @@ export const AccountsView: React.FC = () => {
 
               <div>
                 <div className="pt-3 border-t border-black/[0.04] dark:border-white/[0.06]">
-                  <span className="text-[10px] font-mono text-ink-400 block uppercase">
+                  <span className="text-xs text-secondary block uppercase">
                     Available Balance
                   </span>
                   <span
@@ -290,7 +318,7 @@ export const AccountsView: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between mt-3 pt-2 text-[11px] font-mono text-ink-500 border-t border-black/[0.04] dark:border-white/[0.06]">
+                <div className="flex items-center justify-between mt-3 pt-2 text-xs text-secondary border-t border-black/[0.04] dark:border-white/[0.06]">
                   <span>{accTxns.length} records</span>
                   <button
                     onClick={(e) => {
@@ -298,7 +326,7 @@ export const AccountsView: React.FC = () => {
                       setTransferSourceId(acc.id);
                       setIsTransferOpen(true);
                     }}
-                    className="text-apple-blue font-semibold hover:underline"
+                    className="text-accent font-semibold hover:underline"
                   >
                     Transfer Funds →
                   </button>
@@ -316,11 +344,11 @@ export const AccountsView: React.FC = () => {
                     className="overflow-hidden mt-3 pt-3 border-t border-black/[0.04] dark:border-white/[0.06]"
                     onClick={e => e.stopPropagation()}
                   >
-                    <span className="text-[10px] uppercase font-mono text-ink-400 font-semibold block mb-2">
+                    <span className="text-xs uppercase font-mono text-secondary font-semibold block mb-2">
                       Recent Activity
                     </span>
                     {accTxns.length === 0 ? (
-                      <p className="text-xs text-ink-400 italic">No entries yet.</p>
+                      <p className="text-xs text-secondary italic">No entries yet.</p>
                     ) : (
                       <div className="space-y-1.5 max-h-40 overflow-y-auto">
                         {accTxns.slice(0, 5).map(t => (
@@ -356,9 +384,13 @@ export const AccountsView: React.FC = () => {
 
       {/* Create Account Modal */}
       <AnimatePresence>
-        {isCreatingAccount && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md">
+        {isCreatingAccount && typeof document !== 'undefined' && createPortal(
+          <div
+            onClick={() => setIsCreatingAccount(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md"
+          >
             <motion.div
+              onClick={(e) => e.stopPropagation()}
               initial={{ opacity: 0, scale: 0.95, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -371,7 +403,7 @@ export const AccountsView: React.FC = () => {
                 </h3>
                 <button
                   onClick={() => setIsCreatingAccount(false)}
-                  className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-ink-400"
+                  className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-secondary"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -388,7 +420,7 @@ export const AccountsView: React.FC = () => {
                     placeholder='e.g. "HDFC Salary", "Cash Pouch", "Paytm Wallet"'
                     value={newAccName}
                     onChange={e => setNewAccName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                    className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm text-ink-900 dark:text-ink-100 focus-ring"
                     autoFocus
                   />
                 </div>
@@ -401,7 +433,7 @@ export const AccountsView: React.FC = () => {
                     <select
                       value={newAccType}
                       onChange={e => setNewAccType(e.target.value as AccountType)}
-                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-xs text-ink-900 dark:text-ink-100 outline-none"
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 text-xs text-ink-900 dark:text-ink-100 focus-ring cursor-pointer"
                     >
                       <option value="cash">Physical Cash</option>
                       <option value="bank">Bank Account</option>
@@ -420,7 +452,7 @@ export const AccountsView: React.FC = () => {
                       placeholder="0"
                       value={newAccBalance}
                       onChange={e => setNewAccBalance(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm font-mono text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm font-mono text-ink-900 dark:text-ink-100 focus-ring"
                     />
                   </div>
                 </div>
@@ -435,22 +467,27 @@ export const AccountsView: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 text-xs font-semibold bg-apple-blue hover:bg-apple-blue/90 text-white rounded-xl shadow-sm"
+                    className="px-4 py-2 text-xs font-semibold bg-accent text-white rounded-xl shadow-sm"
                   >
                     Create Account
                   </button>
                 </div>
               </form>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
 
       {/* Edit Account Modal */}
       <AnimatePresence>
-        {editingAccount && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md">
+        {editingAccount && typeof document !== 'undefined' && createPortal(
+          <div
+            onClick={() => setEditingAccount(null)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md"
+          >
             <motion.div
+              onClick={(e) => e.stopPropagation()}
               initial={{ opacity: 0, scale: 0.95, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -463,7 +500,7 @@ export const AccountsView: React.FC = () => {
                 </h3>
                 <button
                   onClick={() => setEditingAccount(null)}
-                  className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-ink-400"
+                  className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-secondary"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -479,7 +516,7 @@ export const AccountsView: React.FC = () => {
                     required
                     value={editName}
                     onChange={e => setEditName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                    className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm text-ink-900 dark:text-ink-100 focus-ring"
                   />
                 </div>
 
@@ -491,7 +528,7 @@ export const AccountsView: React.FC = () => {
                     <select
                       value={editType}
                       onChange={e => setEditType(e.target.value as AccountType)}
-                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-xs text-ink-900 dark:text-ink-100 outline-none"
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 text-xs text-ink-900 dark:text-ink-100 focus-ring cursor-pointer"
                     >
                       <option value="cash">Physical Cash</option>
                       <option value="bank">Bank Account</option>
@@ -509,7 +546,7 @@ export const AccountsView: React.FC = () => {
                       step="any"
                       value={editBalance}
                       onChange={e => setEditBalance(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm font-mono text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm font-mono text-ink-900 dark:text-ink-100 focus-ring"
                     />
                   </div>
                 </div>
@@ -524,59 +561,49 @@ export const AccountsView: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 text-xs font-semibold bg-apple-blue hover:bg-apple-blue/90 text-white rounded-xl shadow-sm"
+                    className="px-4 py-2 text-xs font-semibold bg-accent text-white rounded-xl shadow-sm"
                   >
                     Save Changes
                   </button>
                 </div>
               </form>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
 
-      {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {deletingAccount && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 450, damping: 35 }}
-              className="w-full max-w-sm p-6 rounded-3xl bg-white dark:bg-[#1C1C1E] border border-apple-red/30 shadow-apple-float space-y-4"
-            >
-              <div className="w-10 h-10 rounded-2xl bg-apple-red/15 text-apple-red flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5" />
-              </div>
+      {/* Delete Confirmation — cascades to linked entries, so it names the count */}
+      <ConfirmDialog
+        open={Boolean(deletingAccount)}
+        onClose={() => setDeletingAccount(null)}
+        onConfirm={handleDeleteConfirm}
+        title={deletingAccount ? `Delete ${deletingAccount.name}?` : 'Delete account?'}
+        body={
+          doomedTransactionCount > 0 ? (
+            <>
+              Every entry booked against this account is deleted with it. Your other accounts and
+              their balances are untouched.
+            </>
+          ) : (
+            <>
+              This account has no entries yet, so nothing else is affected. You can add it again at
+              any time.
+            </>
+          )
+        }
+        consequences={
+          doomedTransactionCount > 0
+            ? [
+                { label: 'Account', value: deletingAccount?.name ?? '' },
+                { label: 'Linked entries', value: doomedTransactionCount },
+              ]
+            : undefined
+        }
+        confirmLabel="Delete account"
+        cancelLabel="Keep account"
+      />
 
-              <div>
-                <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
-                  Delete "{deletingAccount.name}"?
-                </h3>
-                <p className="text-xs text-ink-500 mt-1 leading-relaxed">
-                  This account and associated ledger balance will be removed. Existing transactions will remain intact.
-                </p>
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-2">
-                <button
-                  onClick={() => setDeletingAccount(null)}
-                  className="px-4 py-2 text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDeleteConfirm}
-                  className="px-4 py-2 text-xs font-semibold bg-apple-red hover:bg-apple-red/90 text-white rounded-xl shadow-sm"
-                >
-                  Confirm Delete
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

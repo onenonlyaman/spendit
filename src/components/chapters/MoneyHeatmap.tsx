@@ -20,25 +20,30 @@ export const MoneyHeatmap: React.FC<MoneyHeatmapProps> = ({ yearMonthStr }) => {
 
   const heatmapDays = getMonthlyHeatmap(transactions, yearMonthStr);
 
+  /**
+   * A sequential quantity needs a sequential ramp. The previous version stepped
+   * green → blue → indigo → purple → orange, five hues with no perceptual
+   * order, so a reader could not tell which cell meant "more" without decoding
+   * a legend that omitted one of them. One hue, rising density, reads instantly.
+   */
+  const INTENSITY_STEPS = [
+    'bg-apple-blue/[0.06] border-apple-blue/15 text-ink-700 dark:text-ink-300',
+    'bg-apple-blue/[0.16] border-apple-blue/25 text-ink-800 dark:text-ink-200',
+    'bg-apple-blue/[0.32] border-apple-blue/40 text-ink-900 dark:text-ink-100',
+    'bg-apple-blue/[0.52] border-apple-blue/60 text-ink-900 dark:text-white',
+    'bg-apple-blue/[0.78] border-apple-blue text-white',
+  ];
+
   const getIntensityStyle = (intensity: number, isNoSpend: boolean, isFuture: boolean, isToday: boolean) => {
     if (isFuture) {
       return 'bg-black/[0.01] dark:bg-white/[0.01] opacity-30 border-dashed border-black/5 dark:border-white/5';
     }
+    // A no-spend day is a different kind of day, not a lower amount, so it is
+    // marked by a distinct outline rather than another step on the ramp.
     if (isNoSpend) {
-      return 'bg-apple-green/15 border-apple-green/30 text-apple-green';
+      return 'bg-transparent border-apple-green border-dashed text-apple-green';
     }
-    switch (intensity) {
-      case 1:
-        return 'bg-apple-blue/15 border-apple-blue/30 text-apple-blue';
-      case 2:
-        return 'bg-apple-indigo/25 border-apple-indigo/40 text-apple-indigo';
-      case 3:
-        return 'bg-apple-purple/35 border-apple-purple/50 text-apple-purple';
-      case 4:
-        return 'bg-apple-orange/45 border-apple-orange/60 text-apple-orange';
-      default:
-        return 'bg-black/[0.02] dark:bg-white/[0.03] border-black/[0.05] dark:border-white/[0.07] text-ink-700 dark:text-ink-300';
-    }
+    return INTENSITY_STEPS[Math.min(Math.max(intensity, 0), INTENSITY_STEPS.length - 1)];
   };
 
   const dayOfWeekHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -53,36 +58,35 @@ export const MoneyHeatmap: React.FC<MoneyHeatmapProps> = ({ yearMonthStr }) => {
           <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
             Monthly Daily Spending Activity
           </h3>
-          <p className="text-xs font-mono text-ink-400">
-            Activity heat index • Tap any cell to view day folio
+          <p className="text-xs text-secondary">
+            Darker means more spent. Select a day to open it.
           </p>
         </div>
 
-        {/* Apple HIG Legend */}
-        <div className="flex items-center space-x-3 text-[11px] font-mono text-ink-500">
-          <div className="flex items-center space-x-1.5">
-            <span className="w-2.5 h-2.5 rounded-md bg-apple-green/20 border border-apple-green/50 inline-block" />
-            <span>Zero</span>
-          </div>
-          <div className="flex items-center space-x-1.5">
-            <span className="w-2.5 h-2.5 rounded-md bg-apple-blue/20 border border-apple-blue/50 inline-block" />
-            <span>Low</span>
-          </div>
-          <div className="flex items-center space-x-1.5">
-            <span className="w-2.5 h-2.5 rounded-md bg-apple-indigo/30 border border-apple-indigo/50 inline-block" />
-            <span>Mid</span>
-          </div>
-          <div className="flex items-center space-x-1.5">
-            <span className="w-2.5 h-2.5 rounded-md bg-apple-orange/40 border border-apple-orange/60 inline-block" />
-            <span>High</span>
-          </div>
+        {/* Legend is generated from the same ramp that paints the cells, so the
+            two can never drift apart the way they had. */}
+        <div className="flex items-center gap-2 text-xs text-secondary">
+          <span className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-[5px] border border-dashed border-apple-green inline-block" />
+            <span>No spend</span>
+          </span>
+          <span className="flex items-center gap-1 ml-1">
+            <span>Less</span>
+            {INTENSITY_STEPS.map((step, i) => (
+              <span
+                key={i}
+                className={`w-3 h-3 rounded-[5px] border inline-block ${step}`}
+              />
+            ))}
+            <span>More</span>
+          </span>
         </div>
       </div>
 
       {/* Weekday Column Headers */}
       <div className="grid grid-cols-7 gap-2 text-center">
         {dayOfWeekHeaders.map(day => (
-          <div key={day} className="text-[11px] font-mono uppercase text-ink-400 font-semibold py-0.5">
+          <div key={day} className="text-xs font-mono uppercase text-secondary font-semibold py-0.5">
             {day}
           </div>
         ))}
@@ -114,7 +118,7 @@ export const MoneyHeatmap: React.FC<MoneyHeatmapProps> = ({ yearMonthStr }) => {
                 {item.dayNumber}
               </span>
               {item.isNoSpend && (
-                <span className="text-[10px] text-apple-green font-bold flex items-center" title="No Spend Day">
+                <span className="text-xs text-apple-green font-bold flex items-center" title="No Spend Day">
                   ★
                 </span>
               )}
@@ -123,7 +127,7 @@ export const MoneyHeatmap: React.FC<MoneyHeatmapProps> = ({ yearMonthStr }) => {
             {/* Spend Amount */}
             <div className="mt-1">
               {!item.isFuture && (
-                <span className="font-mono text-[10px] block truncate font-semibold">
+                <span className="font-mono text-xs block truncate font-semibold">
                   {item.isNoSpend ? 'Zero' : formatCurrency(item.spendAmount, currencySymbol, privacyMode)}
                 </span>
               )}

@@ -46,19 +46,19 @@ export const TransferModal: React.FC<TransferModalProps> = ({ onClose, initialFr
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-black/[0.06] dark:border-white/[0.08]">
           <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-xl bg-apple-blue/15 text-apple-blue flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-apple-blue/15 text-accent flex items-center justify-center">
               <ArrowRightLeft className="w-4 h-4" />
             </div>
             <div>
               <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
                 Transfer Funds
               </h3>
-              <span className="text-xs font-mono text-ink-400">Inter-account reallocation</span>
+              <span className="text-xs text-secondary">Inter-account reallocation</span>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-ink-400"
+            className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-secondary"
           >
             <X className="w-4 h-4" />
           </button>
@@ -72,7 +72,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({ onClose, initialFr
             <select
               value={fromId}
               onChange={e => setFromId(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 text-xs outline-none"
+              className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 text-xs focus-ring"
             >
               {accounts.map(a => (
                 <option key={a.id} value={a.id} disabled={a.id === toId}>
@@ -89,7 +89,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({ onClose, initialFr
             <select
               value={toId}
               onChange={e => setToId(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 text-xs outline-none"
+              className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 text-xs focus-ring"
             >
               {accounts.map(a => (
                 <option key={a.id} value={a.id} disabled={a.id === fromId}>
@@ -110,7 +110,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({ onClose, initialFr
               value={amount}
               onChange={e => setAmount(e.target.value)}
               placeholder="0.00"
-              className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 font-mono text-sm border border-black/10 dark:border-white/10 outline-none focus:ring-2 focus:ring-apple-blue"
+              className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 font-mono text-sm border border-black/10 dark:border-white/10 focus-ring"
             />
           </div>
 
@@ -123,7 +123,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({ onClose, initialFr
               value={description}
               onChange={e => setDescription(e.target.value)}
               placeholder="e.g. Monthly savings allocation"
-              className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 text-xs border border-black/10 dark:border-white/10 outline-none focus:ring-2 focus:ring-apple-blue"
+              className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 text-xs border border-black/10 dark:border-white/10 focus-ring"
             />
           </div>
 
@@ -138,7 +138,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({ onClose, initialFr
             <button
               type="submit"
               disabled={!amount || parseFloat(amount) <= 0 || fromId === toId}
-              className="px-4 py-2 bg-apple-blue hover:bg-apple-blue/90 text-white rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-95 disabled:opacity-50"
+              className="px-4 py-2 bg-accent text-white rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-95 disabled:opacity-50"
             >
               Confirm Transfer
             </button>

@@ -84,7 +84,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ updateState, onClose }
                 ? 'bg-apple-orange/15 text-apple-orange'
                 : isAndroidAPK
                 ? 'bg-apple-green/15 text-apple-green'
-                : 'bg-apple-blue/15 text-apple-blue'
+                : 'bg-apple-blue/15 text-accent'
             }`}>
               {isMajorUpgrade ? (
                 <AlertTriangle className="w-5 h-5" />
@@ -102,14 +102,14 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ updateState, onClose }
                   ? 'New Android Release Available'
                   : 'New App Update Available'}
               </h3>
-              <p className="text-xs font-mono text-ink-400">
-                Current: <span className="font-bold">v{updateState.currentVersion}</span> → Available: <span className="font-bold text-apple-blue">v{updateState.newVersion}</span>
+              <p className="text-xs text-secondary">
+                Current: <span className="font-bold">v{updateState.currentVersion}</span> → Available: <span className="font-bold text-accent">v{updateState.newVersion}</span>
               </p>
             </div>
           </div>
-          <button
+          <button aria-label="Close update dialog"
             onClick={onClose}
-            className="p-1.5 rounded-full text-ink-400 hover:text-ink-700 dark:hover:text-ink-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-full text-secondary hover:text-ink-700 dark:hover:text-ink-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -123,7 +123,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ updateState, onClose }
                 <ExternalLink className="w-4 h-4" />
                 Architectural Upgrade Required
               </p>
-              <p className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed">
+              <p className="text-sm text-secondary leading-relaxed">
                 Version <strong>v{updateState.newVersion}</strong> includes major native platform updates. To upgrade safely while preserving your local database, download the new installer directly from our GitHub Releases page.
               </p>
             </div>
@@ -133,17 +133,17 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ updateState, onClose }
                 <Smartphone className="w-4 h-4" />
                 Android APK Package Update
               </p>
-              <p className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed">
+              <p className="text-sm text-secondary leading-relaxed">
                 Version <strong>v{updateState.newVersion}</strong> is ready to download and install. Your local SQLite ledger records will be preserved seamlessly during update.
               </p>
             </div>
           ) : (
             <div className="bg-apple-blue/10 border border-apple-blue/20 rounded-2xl p-4 space-y-2">
-              <p className="font-semibold text-apple-blue flex items-center gap-2 text-xs">
+              <p className="font-semibold text-accent flex items-center gap-2 text-xs">
                 <ArrowUpCircle className="w-4 h-4" />
                 Seamless Over-The-Air (OTA) Update
               </p>
-              <p className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed">
+              <p className="text-sm text-secondary leading-relaxed">
                 This update can be applied instantly within the application. Your SQLite financial records will remain completely safe in your AppData directory.
               </p>
             </div>
@@ -152,7 +152,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ updateState, onClose }
           {/* Release Notes */}
           {updateState.body && (
             <div className="space-y-1.5">
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-ink-400">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-secondary">
                 Changelog & Highlights
               </span>
               <div className="p-3 bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06] rounded-2xl text-xs font-mono whitespace-pre-wrap max-h-40 overflow-y-auto leading-relaxed text-ink-800 dark:text-ink-200">
@@ -164,13 +164,13 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ updateState, onClose }
           {/* Progress Bar (For Desktop OTA Download) */}
           {isDownloading && (
             <div className="space-y-2 py-2">
-              <div className="flex justify-between text-xs font-mono text-ink-600 dark:text-ink-400">
+              <div className="flex justify-between text-xs text-secondary">
                 <span>Downloading update...</span>
                 <span>{progress}%</span>
               </div>
               <div className="w-full bg-black/5 dark:bg-white/10 rounded-full h-2 overflow-hidden">
                 <div
-                  className="bg-apple-blue h-2 rounded-full transition-all duration-300"
+                  className="bg-accent h-2 rounded-full transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -199,7 +199,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ updateState, onClose }
         <div className="p-4 border-t border-black/[0.06] dark:border-white/[0.08] flex items-center justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold text-ink-500 hover:text-ink-800 dark:hover:text-ink-200 transition-colors"
+            className="px-4 py-2 text-xs font-semibold text-ink-600 dark:text-ink-300 hover:text-ink-900 dark:hover:text-white transition-colors"
           >
             {isDownloaded ? 'Close' : 'Later'}
           </button>
@@ -215,7 +215,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ updateState, onClose }
           ) : isMajorUpgrade ? (
             <button
               onClick={openGitHubReleases}
-              className="px-4 py-2 bg-apple-blue hover:bg-apple-blue/90 text-white rounded-xl text-xs font-semibold flex items-center space-x-2 transition-transform active:scale-95 shadow-sm"
+              className="px-4 py-2 bg-accent text-white rounded-xl text-xs font-semibold flex items-center space-x-2 transition-transform active:scale-95 shadow-sm"
             >
               <ExternalLink className="w-3.5 h-3.5" />
               <span>Download from GitHub</span>
@@ -232,7 +232,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ updateState, onClose }
             <button
               onClick={handleStartOTADownload}
               disabled={isDownloading}
-              className="px-4 py-2 bg-apple-blue hover:bg-apple-blue/90 disabled:opacity-50 text-white rounded-xl text-xs font-semibold flex items-center space-x-2 transition-transform active:scale-95 shadow-sm"
+              className="px-4 py-2 bg-accent disabled:opacity-50 text-white rounded-xl text-xs font-semibold flex items-center space-x-2 transition-transform active:scale-95 shadow-sm"
             >
               <Download className="w-3.5 h-3.5" />
               <span>{isDownloading ? 'Downloading...' : 'Update In-App'}</span>

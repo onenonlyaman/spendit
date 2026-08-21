@@ -37,11 +37,11 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
             <h4 className="font-sans font-bold text-sm text-ink-900 dark:text-ink-100 truncate">
               Receipt: {description}
             </h4>
-            <span className="text-[11px] font-mono text-ink-400">Transaction receipt attachment</span>
+            <span className="text-xs text-secondary">Transaction receipt attachment</span>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-ink-400"
+            className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-secondary"
           >
             <X className="w-4 h-4" />
           </button>
@@ -83,7 +83,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={onClose}
-              className="px-4 py-1.5 rounded-xl bg-apple-blue hover:bg-apple-blue/90 text-white text-xs font-semibold shadow-sm"
+              className="px-4 py-1.5 rounded-xl bg-accent text-white text-xs font-semibold shadow-sm"
             >
               Done
             </motion.button>

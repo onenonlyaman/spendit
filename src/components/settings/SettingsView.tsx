@@ -30,6 +30,8 @@ import {
   Zap,
 } from 'lucide-react';
 import { useFinance } from '../../context/FinanceContext';
+import { useToast } from '../../context/ToastContext';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { CustomReminder } from '../../types';
 import { exportTransactionsToCSV } from '../../lib/utils';
 import { PrintableJournalModal } from '../common/PrintableJournalModal';
@@ -70,7 +72,9 @@ export const SettingsView: React.FC = () => {
     resetAllData,
   } = useFinance();
 
+  const { success, error } = useToast();
   const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [hasExportedBeforeReset, setHasExportedBeforeReset] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [printableModalScope, setPrintableModalScope] = useState<'day' | 'month' | 'all' | null>(null);
   const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState(false);
@@ -140,26 +144,41 @@ export const SettingsView: React.FC = () => {
   };
 
   const handleExportJSON = async () => {
-    const backupData = await exportBackup();
-    const jsonStr = typeof backupData === 'string' ? backupData : JSON.stringify(backupData, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `spendit-journal-backup-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const backupData = await exportBackup();
+      const jsonStr =
+        typeof backupData === 'string' ? backupData : JSON.stringify(backupData, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `spendit-journal-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setHasExportedBeforeReset(true);
+      success('Backup downloaded', `${transactions.length} entries saved to your device.`);
+    } catch (err) {
+      error(
+        'Backup failed',
+        err instanceof Error ? err.message : 'Could not write the backup file.'
+      );
+    }
   };
 
   const handleExportCSV = () => {
-    const csvStr = exportTransactionsToCSV(transactions, accounts, categories);
-    const blob = new Blob([csvStr], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `spendit-ledger-entries-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const csvStr = exportTransactionsToCSV(transactions, accounts, categories);
+      const blob = new Blob([csvStr], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `spendit-ledger-entries-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      success('Spreadsheet downloaded', `${transactions.length} entries exported as CSV.`);
+    } catch (err) {
+      error('Export failed', err instanceof Error ? err.message : 'Could not write the CSV file.');
+    }
   };
 
   const handleImportJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,15 +186,24 @@ export const SettingsView: React.FC = () => {
     if (!file) return;
 
     const reader = new FileReader();
+    reader.onerror = () => {
+      setImportStatus('Could not read that file');
+      error('Restore failed', 'That file could not be read from disk.');
+    };
     reader.onload = async event => {
       const content = event.target?.result as string;
+      setImportStatus('Restoring…');
       const ok = await importBackup(content);
       if (ok) {
-        setImportStatus('✓ Ledger successfully restored!');
+        setImportStatus('Restored');
+        success('Ledger restored', 'Your entries, accounts, and jars are back.');
       } else {
-        setImportStatus('✕ Invalid backup archive file.');
+        setImportStatus('That file is not a SpendIt backup');
+        error(
+          'Restore failed',
+          'That file is not a SpendIt backup, or it is damaged. Your current ledger is untouched.'
+        );
       }
-      setTimeout(() => setImportStatus(null), 4000);
     };
     reader.readAsText(file);
   };
@@ -193,8 +221,8 @@ export const SettingsView: React.FC = () => {
     <div className="max-w-3xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6">
       {/* Header */}
       <div className="apple-glass-card rounded-3xl p-6 space-y-1">
-        <span className="text-xs uppercase font-mono tracking-wider text-ink-400 dark:text-ink-500 font-semibold block">
-          Configuration & Sovereignty
+        <span className="text-xs uppercase tracking-wide text-secondary font-semibold block">
+          General
         </span>
         <h1 className="font-sans font-bold text-2xl sm:text-3xl text-ink-900 dark:text-ink-100 tracking-tight">
           Settings
@@ -203,7 +231,7 @@ export const SettingsView: React.FC = () => {
 
       {/* Section 1: App Preferences */}
       <div className="space-y-2">
-        <span className="text-[11px] font-mono uppercase tracking-wider text-ink-400 font-semibold px-3 block">
+        <span className="text-xs font-semibold uppercase tracking-wide text-secondary font-semibold px-3 block">
           Preferences & Acoustics
         </span>
 
@@ -214,7 +242,7 @@ export const SettingsView: React.FC = () => {
               <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
                 Primary Currency
               </span>
-              <span className="text-[11px] font-mono text-ink-400">
+              <span className="text-xs text-secondary">
                 Default symbol for amounts
               </span>
             </div>
@@ -222,7 +250,7 @@ export const SettingsView: React.FC = () => {
             <select
               value={currencySymbol}
               onChange={e => setCurrencySymbol(e.target.value)}
-              className="px-3 py-1.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] text-xs font-semibold text-ink-900 dark:text-ink-100 outline-none cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] text-xs font-semibold text-ink-900 dark:text-ink-100 focus-ring cursor-pointer"
             >
               {currencies.map(c => (
                 <option key={c.symbol} value={c.symbol}>
@@ -238,7 +266,7 @@ export const SettingsView: React.FC = () => {
               <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
                 Privacy Mode
               </span>
-              <span className="text-[11px] font-mono text-ink-400">
+              <span className="text-xs text-secondary">
                 Mask amounts in public view (Key: P)
               </span>
             </div>
@@ -257,7 +285,7 @@ export const SettingsView: React.FC = () => {
               <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
                 Acoustic Haptics & Sounds
               </span>
-              <span className="text-[11px] font-mono text-ink-400">
+              <span className="text-xs text-secondary">
                 Page turns, wax stamps, and coin chimes
               </span>
             </div>
@@ -280,7 +308,7 @@ export const SettingsView: React.FC = () => {
               <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
                 Performance Profile
               </span>
-              <span className="text-[11px] font-mono text-ink-400">
+              <span className="text-xs text-secondary">
                 {performanceMode
                   ? 'High Speed: Blurs & springs disabled for ultra-low GPU load'
                   : 'Rich Appearance: Translucent blurs & fluid spring physics'}
@@ -304,11 +332,11 @@ export const SettingsView: React.FC = () => {
               <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
                 Journal Guide & Tutorial
               </span>
-              <span className="text-[11px] font-mono text-ink-400">
+              <span className="text-xs text-secondary">
                 Re-open interactive shorthand walkthrough
               </span>
             </div>
-            <ChevronRight className="w-4 h-4 text-ink-400" />
+            <ChevronRight className="w-4 h-4 text-secondary" />
           </button>
         </div>
       </div>
@@ -316,7 +344,7 @@ export const SettingsView: React.FC = () => {
       {/* Section 2: Custom Reminders & Notifications */}
       <div className="space-y-2">
         <div className="flex items-center justify-between px-3">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-400 font-semibold">
+          <span className="text-xs font-semibold uppercase tracking-wide text-secondary font-semibold">
             Custom Reminders & Folio Alerts
           </span>
           <button
@@ -325,7 +353,7 @@ export const SettingsView: React.FC = () => {
               setSelectedReminderForEdit(null);
               setIsReminderModalOpen(true);
             }}
-            className="text-xs font-semibold text-apple-blue hover:text-apple-blue/80 flex items-center space-x-1"
+            className="text-xs font-semibold text-accent hover:text-accent/80 flex items-center space-x-1"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Reminder</span>
@@ -339,7 +367,7 @@ export const SettingsView: React.FC = () => {
               <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
                 Enable Scheduled Reminders
               </span>
-              <span className="text-[11px] font-mono text-ink-400">
+              <span className="text-xs text-secondary">
                 Receive native desktop toasts on your scheduled time
               </span>
             </div>
@@ -377,7 +405,7 @@ export const SettingsView: React.FC = () => {
                   }}
                   className="flex-1 flex items-center space-x-3 text-left overflow-hidden group"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-apple-blue/10 dark:bg-apple-blue/20 text-apple-blue flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                  <div className="w-8 h-8 rounded-xl bg-apple-blue/10 dark:bg-apple-blue/20 text-accent flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
                     {reminder.action === 'log_day' ? (
                       <BookOpen className="w-4 h-4" />
                     ) : reminder.action === 'review_jars' ? (
@@ -395,11 +423,11 @@ export const SettingsView: React.FC = () => {
                       <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 truncate">
                         {reminder.title}
                       </span>
-                      <span className="px-1.5 py-0.5 rounded-md bg-black/5 dark:bg-white/10 text-[10px] font-mono text-ink-600 dark:text-ink-300 flex-shrink-0">
+                      <span className="px-1.5 py-0.5 rounded-md bg-black/5 dark:bg-white/10 text-xs font-mono text-ink-600 dark:text-ink-300 flex-shrink-0">
                         {reminder.time}
                       </span>
                     </div>
-                    <p className="text-[11px] font-mono text-ink-400 truncate">
+                    <p className="text-xs text-secondary truncate">
                       {frequencyLabel} • {reminder.body}
                     </p>
                   </div>
@@ -424,7 +452,7 @@ export const SettingsView: React.FC = () => {
               <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
                 Recurring Bill Due Reminders
               </span>
-              <span className="text-[11px] font-mono text-ink-400">
+              <span className="text-xs text-secondary">
                 Toast notifications when commitments are due
               </span>
             </div>
@@ -443,7 +471,7 @@ export const SettingsView: React.FC = () => {
               <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
                 Test System Notifications
               </span>
-              <span className="text-[11px] font-mono text-ink-400">
+              <span className="text-xs text-secondary">
                 Send an immediate test alert to verify permissions
               </span>
             </div>
@@ -467,7 +495,7 @@ export const SettingsView: React.FC = () => {
               <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
                 SpendIt Desktop v{CURRENT_APP_VERSION}
               </span>
-              <span className="text-[11px] font-mono text-ink-400">
+              <span className="text-xs text-secondary">
                 {updateCheckStatus || 'Offline-first release'}
               </span>
             </div>
@@ -475,7 +503,7 @@ export const SettingsView: React.FC = () => {
             <button
               onClick={handleCheckForUpdates}
               disabled={isCheckingUpdate}
-              className="px-3 py-1.5 rounded-xl bg-apple-blue hover:bg-apple-blue/90 text-white text-xs font-semibold shadow-sm transition-all active:scale-95 disabled:opacity-50"
+              className="px-3 py-1.5 rounded-xl bg-accent text-white text-xs font-semibold shadow-sm transition-all active:scale-95 disabled:opacity-50"
             >
               {isCheckingUpdate ? 'Checking...' : 'Check Updates'}
             </button>
@@ -485,7 +513,7 @@ export const SettingsView: React.FC = () => {
 
       {/* Section 3: Data Export & Archiving */}
       <div className="space-y-2">
-        <span className="text-[11px] font-mono uppercase tracking-wider text-ink-400 font-semibold px-3 block">
+        <span className="text-xs font-semibold uppercase tracking-wide text-secondary font-semibold px-3 block">
           Export & Portability
         </span>
 
@@ -499,11 +527,11 @@ export const SettingsView: React.FC = () => {
               <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
                 Print Complete Historical Folio
               </span>
-              <span className="text-[11px] font-mono text-ink-400">
+              <span className="text-xs text-secondary">
                 Export vector printable PDF document
               </span>
             </div>
-            <Printer className="w-4 h-4 text-apple-blue" />
+            <Printer className="w-4 h-4 text-accent" />
           </button>
 
           {/* Export JSON Backup */}
@@ -515,7 +543,7 @@ export const SettingsView: React.FC = () => {
               <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
                 Export Journal JSON Backup
               </span>
-              <span className="text-[11px] font-mono text-ink-400">
+              <span className="text-xs text-secondary">
                 Download complete backup file
               </span>
             </div>
@@ -531,7 +559,7 @@ export const SettingsView: React.FC = () => {
               <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
                 Export Spreadsheet CSV
               </span>
-              <span className="text-[11px] font-mono text-ink-400">
+              <span className="text-xs text-secondary">
                 Excel / Numbers compatible register
               </span>
             </div>
@@ -544,7 +572,7 @@ export const SettingsView: React.FC = () => {
               <span className="text-xs font-semibold text-ink-900 dark:text-ink-100 block">
                 Restore Journal Archive
               </span>
-              <span className="text-[11px] font-mono text-ink-400">
+              <span className="text-xs text-secondary">
                 {importStatus || 'Upload .json backup'}
               </span>
             </div>
@@ -562,7 +590,7 @@ export const SettingsView: React.FC = () => {
 
       {/* Section 4: Destructive Zone */}
       <div className="space-y-2">
-        <span className="text-[11px] font-mono uppercase tracking-wider text-apple-red font-semibold px-3 block">
+        <span className="text-xs font-semibold uppercase tracking-wide text-apple-red font-semibold px-3 block">
           Reset Zone
         </span>
 
@@ -571,7 +599,7 @@ export const SettingsView: React.FC = () => {
             <span className="text-xs font-semibold text-apple-red block">
               Erase & Reset All Data
             </span>
-            <span className="text-[11px] font-mono text-ink-400">
+            <span className="text-xs text-secondary">
               Clear all transactions, accounts, and goal envelopes
             </span>
           </div>
@@ -585,51 +613,47 @@ export const SettingsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Reset Confirmation Modal */}
-      <AnimatePresence>
-        {showResetConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 450, damping: 35 }}
-              className="w-full max-w-sm p-6 rounded-3xl bg-white dark:bg-[#1C1C1E] border border-apple-red/30 shadow-apple-float space-y-4"
-            >
-              <div className="w-10 h-10 rounded-2xl bg-apple-red/15 text-apple-red flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5" />
-              </div>
-
-              <div>
-                <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
-                  Reset All Ledger Data?
-                </h3>
-                <p className="text-xs text-ink-500 mt-1 leading-relaxed">
-                  This action is irreversible. All transactions, accounts, and goals will be wiped.
-                </p>
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-2">
-                <button
-                  onClick={() => setShowResetConfirm(false)}
-                  className="px-4 py-2 text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    resetAllData();
-                    setShowResetConfirm(false);
-                  }}
-                  className="px-4 py-2 text-xs font-semibold bg-apple-red hover:bg-apple-red/90 text-white rounded-xl shadow-sm"
-                >
-                  Erase Everything
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* Reset Confirmation — irreversible, so it is gated on a typed phrase */}
+      <ConfirmDialog
+        open={showResetConfirm}
+        onClose={() => setShowResetConfirm(false)}
+        onConfirm={async () => {
+          try {
+            await resetAllData();
+            setShowResetConfirm(false);
+            setHasExportedBeforeReset(false);
+            success('Ledger erased', 'SpendIt is back to a blank folio.');
+          } catch (err) {
+            error(
+              'Erase failed',
+              err instanceof Error ? err.message : 'The ledger was not changed.'
+            );
+          }
+        }}
+        title="Erase everything?"
+        body={
+          <>
+            SpendIt keeps your ledger only on this device. There is no cloud copy and no way to
+            undo this — once erased, these records are gone for good.
+          </>
+        }
+        consequences={[
+          { label: 'Entries', value: transactions.length },
+          { label: 'Accounts', value: accounts.length },
+          { label: 'Categories', value: categories.length },
+          { label: 'Reminders', value: reminders.length },
+        ]}
+        safeAction={{
+          label: hasExportedBeforeReset ? 'Download another backup' : 'Download a backup first',
+          onClick: handleExportJSON,
+          hint: hasExportedBeforeReset
+            ? 'Backup saved. You can restore it later from Export & Portability.'
+            : 'Saves a .json file you can restore from later.',
+        }}
+        requirePhrase="ERASE"
+        confirmLabel="Erase everything"
+        cancelLabel="Keep my ledger"
+      />
 
       {/* Printable Modal */}
       <AnimatePresence>

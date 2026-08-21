@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import confetti from 'canvas-confetti';
 import {
   CheckCheck,
   CheckCircle,
@@ -39,12 +38,6 @@ export const EndOfDaySummary: React.FC<EndOfDaySummaryProps> = ({ date }) => {
   const handleSealDay = () => {
     if (!note.sealed) {
       sounds.playWaxSealStamp();
-      confetti({
-        particleCount: 45,
-        spread: 65,
-        origin: { y: 0.85 },
-        colors: ['#007AFF', '#34C759', '#5856D6', '#FF9500'],
-      });
     }
     toggleSealDay(date);
   };
@@ -58,9 +51,9 @@ export const EndOfDaySummary: React.FC<EndOfDaySummaryProps> = ({ date }) => {
             <span className="font-sans font-bold text-xs uppercase tracking-wider text-ink-900 dark:text-ink-100">
               End-of-Day Ledger Closure
             </span>
-            {totals.expense === 0 && totals.count > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-apple-green/15 text-apple-green font-mono text-[10px] font-bold">
-                ★ No-Spend Day
+            {totals.expense === 0 && (
+              <span className="px-2.5 py-0.5 rounded-full bg-apple-green/12 text-apple-green text-sm font-semibold">
+                No-spend day
               </span>
             )}
           </div>
@@ -68,7 +61,7 @@ export const EndOfDaySummary: React.FC<EndOfDaySummaryProps> = ({ date }) => {
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs">
             {/* Daily Expense */}
             <div>
-              <span className="text-ink-500 dark:text-ink-400 font-mono text-[11px] block">Daily Outflow</span>
+              <span className="text-secondary font-mono text-xs block">Daily Outflow</span>
               <span className="font-mono font-bold text-sm text-apple-red">
                 {formatCurrency(totals.expense, currencySymbol, privacyMode)}
               </span>
@@ -77,7 +70,7 @@ export const EndOfDaySummary: React.FC<EndOfDaySummaryProps> = ({ date }) => {
             {/* Daily Income */}
             {totals.income > 0 && (
               <div>
-                <span className="text-ink-500 dark:text-ink-400 font-mono text-[11px] block">Daily Inflow</span>
+                <span className="text-secondary font-mono text-xs block">Daily Inflow</span>
                 <span className="font-mono font-bold text-sm text-apple-green">
                   +{formatCurrency(totals.income, currencySymbol, privacyMode)}
                 </span>
@@ -86,7 +79,7 @@ export const EndOfDaySummary: React.FC<EndOfDaySummaryProps> = ({ date }) => {
 
             {/* 7-Day Baseline Comparison */}
             <div className="border-l border-black/[0.06] dark:border-white/[0.08] pl-4">
-              <span className="text-ink-500 dark:text-ink-400 font-mono text-[11px] block">
+              <span className="text-secondary font-mono text-xs block">
                 7-Day Rolling Average: {formatCurrency(trailing7DayAvg, currencySymbol, privacyMode)}/day
               </span>
               <div className="flex items-center space-x-1 font-mono text-xs font-semibold">
@@ -113,30 +106,28 @@ export const EndOfDaySummary: React.FC<EndOfDaySummaryProps> = ({ date }) => {
         {/* Right: Seal Daily Page Button & Status Stamp */}
         <div className="flex items-center space-x-3 w-full md:w-auto justify-end">
           {note.sealed ? (
-            <div className="flex items-center space-x-2.5">
-              <div className="w-7 h-7 rounded-full bg-apple-green/15 text-apple-green flex items-center justify-center font-bold text-xs">
-                ✓
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-apple-green/12 text-apple-green flex items-center justify-center">
+                <Lock className="w-4 h-4" aria-hidden="true" />
               </div>
               <div className="flex flex-col items-start">
-                <span className="text-xs font-semibold text-apple-green">
-                  Page Folio Sealed
-                </span>
+                <span className="text-sm font-semibold text-apple-green">Day sealed</span>
                 <button
                   onClick={handleSealDay}
-                  className="text-[10px] text-ink-400 hover:text-ink-700 dark:hover:text-ink-200 underline"
+                  className="text-sm text-secondary hover:text-ink-900 dark:hover:text-ink-100 underline underline-offset-2 focus-ring rounded"
                 >
-                  Reopen for edits
+                  Break the seal to edit
                 </button>
               </div>
             </div>
           ) : (
             <motion.button
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.98 }}
               onClick={handleSealDay}
-              className="px-4 py-2 rounded-xl bg-apple-green hover:bg-apple-green/90 text-white font-sans text-xs font-semibold shadow-sm flex items-center space-x-1.5 transition-all"
+              className="px-4 py-2.5 rounded-xl bg-apple-green hover:bg-apple-green/90 text-white font-sans text-sm font-semibold shadow-sm flex items-center gap-1.5 focus-ring transition-all"
             >
-              <CheckCheck className="w-4 h-4" />
-              <span>Seal Today's Page</span>
+              <CheckCheck className="w-4 h-4" aria-hidden="true" />
+              <span>Seal this day</span>
             </motion.button>
           )}
         </div>

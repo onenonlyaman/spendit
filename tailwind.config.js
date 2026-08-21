@@ -7,11 +7,23 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      fontSize: {
+        // The 13px floor from DESIGN.md. `xs` is the smallest step that exists;
+        // re-basing it here lifts every existing `text-xs` call site at once
+        // instead of leaving 264 of them at an unreadable 12px.
+        'xs': ['13px', { lineHeight: '1.38', letterSpacing: '0' }],
+        'sm': ['15px', { lineHeight: '1.47', letterSpacing: '-0.006em' }],
+        'base': ['16px', { lineHeight: '1.5', letterSpacing: '-0.008em' }],
+        'lg': ['17px', { lineHeight: '1.4', letterSpacing: '-0.01em' }],
+        'xl': ['20px', { lineHeight: '1.25', letterSpacing: '-0.012em' }],
+        '2xl': ['24px', { lineHeight: '1.2', letterSpacing: '-0.018em' }],
+        '3xl': ['28px', { lineHeight: '1.15', letterSpacing: '-0.02em' }],
+        '4xl': ['34px', { lineHeight: '1.12', letterSpacing: '-0.022em' }],
+        '5xl': ['42px', { lineHeight: '1.06', letterSpacing: '-0.024em' }],
+      },
       fontFamily: {
-        serif: ['"Newsreader"', '"Playfair Display"', 'Georgia', 'serif'],
-        handwriting: ['"Caveat"', '"Kalam"', 'cursive'],
         mono: ['"Space Mono"', '"JetBrains Mono"', 'monospace'],
-        sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
         paper: {
@@ -31,21 +43,11 @@ export default {
           700: '#3D4641',
           600: '#546059',
           500: '#6E7D74',
-          400: '#8E9C94',
+          400: '#5F6B65',
+          450: '#9BA8A1',
           300: '#B2BEB7',
           200: '#D5DDD8',
           100: '#EBF0ED',
-        },
-        archival: {
-          red: '#B83A3A',
-          'red-light': '#FDF1F1',
-          green: '#2A6F4E',
-          'green-light': '#F0F8F4',
-          ochre: '#C07D2B',
-          'ochre-light': '#FEF7ED',
-          blue: '#235789',
-          'blue-light': '#F0F6FB',
-          brass: '#8C6D37',
         },
         apple: {
           blue: '#007AFF',

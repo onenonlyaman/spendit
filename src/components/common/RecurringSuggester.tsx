@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import confetti from 'canvas-confetti';
 import {
   BellRing,
   CheckCircle2,
@@ -8,6 +7,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useFinance } from '../../context/FinanceContext';
+import { useToast } from '../../context/ToastContext';
 import { api, FrequentSuggestion, RecurringSuggestion } from '../../lib/api';
 import { formatCurrency } from '../../lib/utils';
 
@@ -26,6 +26,8 @@ export const RecurringSuggester: React.FC<RecurringSuggesterProps> = ({
     currentDiaryDate,
     refreshAllData,
   } = useFinance();
+
+  const { success, error } = useToast();
 
   const [dueSuggestions, setDueSuggestions] = useState<RecurringSuggestion[]>([]);
   const [frequentSuggestions, setFrequentSuggestions] = useState<FrequentSuggestion[]>([]);
@@ -53,17 +55,16 @@ export const RecurringSuggester: React.FC<RecurringSuggesterProps> = ({
       await refreshAllData();
       await fetchSuggestions();
 
-      confetti({
-        particleCount: 35,
-        spread: 55,
-        origin: { y: 0.8 },
-        colors: ['#007AFF', '#34C759', '#5856D6', '#FF9500'],
-      });
-
-      setJustLoggedMessage(`✓ Recorded ${item.name} (${currencySymbol}${item.amount})`);
+      // No celebration here: this is the fourth routine entry of the morning,
+      // and a burst of confetti on a repeat action is friction, not delight.
+      success(`Recorded ${item.name}`, formatCurrency(item.amount, currencySymbol));
+      setJustLoggedMessage(`Recorded ${item.name}`);
       setTimeout(() => setJustLoggedMessage(null), 3500);
-    } catch (err: any) {
-      console.error('Failed to 1-tap log recurring item:', err);
+    } catch (err) {
+      error(
+        `Could not log ${item.name}`,
+        err instanceof Error ? err.message : 'Nothing was written to your ledger.'
+      );
     } finally {
       setLoggingId(null);
     }
@@ -82,7 +83,7 @@ export const RecurringSuggester: React.FC<RecurringSuggesterProps> = ({
             <CheckCircle2 className="w-4 h-4" />
             <span>{justLoggedMessage}</span>
           </div>
-          <span className="text-[10px] uppercase tracking-widest text-apple-green/80 font-sans font-semibold">
+          <span className="text-xs uppercase tracking-widest text-apple-green/80 font-sans font-semibold">
             Recorded
           </span>
         </div>
@@ -96,7 +97,7 @@ export const RecurringSuggester: React.FC<RecurringSuggesterProps> = ({
               <BellRing className="w-3.5 h-3.5" />
               <span>Upcoming Due Commitments</span>
             </div>
-            <span className="text-[11px] font-mono text-ink-400">
+            <span className="text-xs text-secondary">
               {dueSuggestions.length} pending
             </span>
           </div>
@@ -123,12 +124,12 @@ export const RecurringSuggester: React.FC<RecurringSuggesterProps> = ({
                         {item.name}
                       </span>
                       <span
-                        className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded-full font-bold ${
+                        className={`text-xs font-mono uppercase px-2 py-0.5 rounded-full font-bold ${
                           isDueToday
                             ? 'bg-apple-orange/15 text-apple-orange'
                             : isOverdue
                             ? 'bg-apple-red/15 text-apple-red'
-                            : 'bg-black/5 dark:bg-white/10 text-ink-500'
+                            : 'bg-black/5 dark:bg-white/10 text-secondary'
                         }`}
                       >
                         {isDueToday
@@ -152,7 +153,7 @@ export const RecurringSuggester: React.FC<RecurringSuggesterProps> = ({
                     className="px-3.5 py-1.5 rounded-xl bg-apple-green hover:bg-apple-green/90 text-white text-xs font-sans font-semibold shadow-sm transition-all flex items-center space-x-1 disabled:opacity-50 flex-shrink-0"
                   >
                     <Zap className="w-3 h-3" />
-                    <span>{loggingId === item.id ? 'Logging...' : '1-Tap Log'}</span>
+                    <span>{loggingId === item.id ? 'Logging…' : 'Log it'}</span>
                   </motion.button>
                 </div>
               );
@@ -164,7 +165,7 @@ export const RecurringSuggester: React.FC<RecurringSuggesterProps> = ({
       {/* Repetitive Spend Habits Quick Chips */}
       {frequentSuggestions.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5 pt-1">
-          <span className="text-[11px] font-sans font-semibold text-ink-400 flex items-center space-x-1 mr-1">
+          <span className="text-xs font-sans font-semibold text-secondary flex items-center space-x-1 mr-1">
             <Sparkles className="w-3 h-3 text-apple-orange" />
             <span>Frequent:</span>
           </span>
@@ -177,7 +178,7 @@ export const RecurringSuggester: React.FC<RecurringSuggesterProps> = ({
               className="text-xs font-sans px-3 py-1 rounded-full bg-white dark:bg-[#1C1C1E] hover:bg-black/5 dark:hover:bg-white/10 text-ink-800 dark:text-ink-200 border border-black/10 dark:border-white/10 shadow-sm transition-all flex items-center space-x-1.5"
             >
               <span>+ {freq.description}</span>
-              <span className="font-mono font-bold text-apple-blue text-[11px]">
+              <span className="font-mono font-bold text-accent text-xs">
                 {formatCurrency(freq.amount, currencySymbol, privacyMode)}
               </span>
             </motion.button>

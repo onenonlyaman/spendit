@@ -21,7 +21,6 @@ import {
 import { useContextMenu } from '../../context/ContextMenuContext';
 import { useFinance } from '../../context/FinanceContext';
 import { sounds } from '../../lib/audioHaptics';
-import { GlassSurface } from '../ui/GlassSurface';
 import { AppleSwitch } from '../ui/apple-switch';
 
 export const CustomContextMenu: React.FC = () => {
@@ -139,13 +138,7 @@ export const CustomContextMenu: React.FC = () => {
         className="fixed z-[9999] min-w-[220px] select-none shadow-apple-float"
         onContextMenu={e => e.preventDefault()}
       >
-        <GlassSurface
-          borderRadius={20}
-          blur={24}
-          backgroundOpacity={0.92}
-          saturation={1.9}
-          className="p-1.5"
-        >
+        <div className="overlay-surface rounded-[20px] overflow-hidden p-1.5">
           <div className="w-full text-xs font-sans text-ink-800 dark:text-ink-200">
             {/* 1. Contextual Text / Clipboard Editing */}
             {showTextEditing && (
@@ -153,49 +146,49 @@ export const CustomContextMenu: React.FC = () => {
                 {targetMeta.isInput && (
                   <button
                     onClick={handleCut}
-                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group"
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-accent hover:text-white transition-colors text-left group"
                   >
                     <span className="flex items-center gap-2">
-                      <Scissors className="w-3.5 h-3.5 text-ink-500 group-hover:text-white" />
+                      <Scissors className="w-3.5 h-3.5 text-secondary group-hover:text-white" />
                       <span>Cut</span>
                     </span>
-                    <span className="font-mono text-[10px] text-ink-400 group-hover:text-white">Ctrl+X</span>
+                    <span className="text-xs text-secondary group-hover:text-white">Ctrl+X</span>
                   </button>
                 )}
 
                 <button
                   onClick={handleCopy}
-                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group"
+                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-accent hover:text-white transition-colors text-left group"
                 >
                   <span className="flex items-center gap-2">
-                    <Copy className="w-3.5 h-3.5 text-ink-500 group-hover:text-white" />
+                    <Copy className="w-3.5 h-3.5 text-secondary group-hover:text-white" />
                     <span>Copy</span>
                   </span>
-                  <span className="font-mono text-[10px] text-ink-400 group-hover:text-white">Ctrl+C</span>
+                  <span className="text-xs text-secondary group-hover:text-white">Ctrl+C</span>
                 </button>
 
                 {targetMeta.isInput && (
                   <button
                     onClick={handlePaste}
-                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group"
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-accent hover:text-white transition-colors text-left group"
                   >
                     <span className="flex items-center gap-2">
-                      <Clipboard className="w-3.5 h-3.5 text-ink-500 group-hover:text-white" />
+                      <Clipboard className="w-3.5 h-3.5 text-secondary group-hover:text-white" />
                       <span>Paste</span>
                     </span>
-                    <span className="font-mono text-[10px] text-ink-400 group-hover:text-white">Ctrl+V</span>
+                    <span className="text-xs text-secondary group-hover:text-white">Ctrl+V</span>
                   </button>
                 )}
 
                 <button
                   onClick={handleSelectAll}
-                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group"
+                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-accent hover:text-white transition-colors text-left group"
                 >
                   <span className="flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-ink-500 group-hover:text-white" />
+                    <Check className="w-3.5 h-3.5 text-secondary group-hover:text-white" />
                     <span>Select All</span>
                   </span>
-                  <span className="font-mono text-[10px] text-ink-400 group-hover:text-white">Ctrl+A</span>
+                  <span className="text-xs text-secondary group-hover:text-white">Ctrl+A</span>
                 </button>
               </div>
             )}
@@ -204,24 +197,24 @@ export const CustomContextMenu: React.FC = () => {
             <div className="space-y-0.5 pb-1 mb-1 border-b border-black/[0.06] dark:border-white/[0.08]">
               <button
                 onClick={() => handleAction(() => setIsQuickAddOpen(true))}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white text-apple-blue font-semibold transition-colors text-left group"
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-accent hover:text-white text-accent font-semibold transition-colors text-left group"
               >
                 <span className="flex items-center gap-2">
-                  <Plus className="w-3.5 h-3.5 text-apple-blue group-hover:text-white" />
+                  <Plus className="w-3.5 h-3.5 text-accent group-hover:text-white" />
                   <span>Log New Entry</span>
                 </span>
-                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded-md bg-apple-blue/15 group-hover:bg-white/20 group-hover:text-white">N</span>
+                <span className="font-mono text-xs px-1.5 py-0.5 rounded-md bg-apple-blue/15 group-hover:bg-white/20 group-hover:text-white">N</span>
               </button>
 
               <div
                 onClick={() => handleAction(togglePrivacyMode)}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group cursor-pointer"
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-accent hover:text-white transition-colors text-left group cursor-pointer"
               >
                 <span className="flex items-center gap-2">
                   {privacyMode ? (
                     <EyeOff className="w-3.5 h-3.5 text-apple-red group-hover:text-white" />
                   ) : (
-                    <Eye className="w-3.5 h-3.5 text-ink-500 group-hover:text-white" />
+                    <Eye className="w-3.5 h-3.5 text-secondary group-hover:text-white" />
                   )}
                   <span>Privacy Mask</span>
                 </span>
@@ -236,26 +229,26 @@ export const CustomContextMenu: React.FC = () => {
 
               <button
                 onClick={() => handleAction(goToToday)}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group"
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-accent hover:text-white transition-colors text-left group"
               >
                 <span className="flex items-center gap-2">
-                  <Calendar className="w-3.5 h-3.5 text-ink-500 group-hover:text-white" />
+                  <Calendar className="w-3.5 h-3.5 text-secondary group-hover:text-white" />
                   <span>Jump to Today</span>
                 </span>
-                <span className="font-mono text-[10px] text-ink-400 group-hover:text-white">T</span>
+                <span className="text-xs text-secondary group-hover:text-white">T</span>
               </button>
 
               <div className="grid grid-cols-2 gap-1 pt-0.5">
                 <button
                   onClick={() => handleAction(goToPreviousDay)}
-                  className="flex items-center justify-center gap-1 px-2 py-1 rounded-xl bg-black/5 dark:bg-white/10 hover:bg-apple-blue hover:text-white text-[11px] font-mono text-ink-700 dark:text-ink-300 transition-colors"
+                  className="flex items-center justify-center gap-1 px-2 py-1 rounded-xl bg-black/5 dark:bg-white/10 hover:bg-accent hover:text-white text-xs font-mono text-ink-700 dark:text-ink-300 transition-colors"
                 >
                   <ChevronLeft className="w-3 h-3" />
                   <span>Prev Day</span>
                 </button>
                 <button
                   onClick={() => handleAction(goToNextDay)}
-                  className="flex items-center justify-center gap-1 px-2 py-1 rounded-xl bg-black/5 dark:bg-white/10 hover:bg-apple-blue hover:text-white text-[11px] font-mono text-ink-700 dark:text-ink-300 transition-colors"
+                  className="flex items-center justify-center gap-1 px-2 py-1 rounded-xl bg-black/5 dark:bg-white/10 hover:bg-accent hover:text-white text-xs font-mono text-ink-700 dark:text-ink-300 transition-colors"
                 >
                   <span>Next Day</span>
                   <ChevronRight className="w-3 h-3" />
@@ -267,7 +260,7 @@ export const CustomContextMenu: React.FC = () => {
             <div className="space-y-0.5">
               <div
                 onClick={() => handleAction(toggleTheme)}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group cursor-pointer"
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-accent hover:text-white transition-colors text-left group cursor-pointer"
               >
                 <span className="flex items-center gap-2">
                   {theme === 'dark' ? (
@@ -288,7 +281,7 @@ export const CustomContextMenu: React.FC = () => {
 
               <div
                 onClick={() => handleAction(togglePerformanceMode)}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group cursor-pointer"
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-accent hover:text-white transition-colors text-left group cursor-pointer"
               >
                 <span className="flex items-center gap-2">
                   <Zap className="w-3.5 h-3.5 text-apple-orange group-hover:text-white" />
@@ -305,7 +298,7 @@ export const CustomContextMenu: React.FC = () => {
 
               <button
                 onClick={() => handleAction(handleExportJSON)}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group"
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-accent hover:text-white transition-colors text-left group"
               >
                 <span className="flex items-center gap-2">
                   <Download className="w-3.5 h-3.5 text-apple-green group-hover:text-white" />
@@ -315,26 +308,26 @@ export const CustomContextMenu: React.FC = () => {
 
               <button
                 onClick={() => handleAction(() => setActiveView('settings'))}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left group"
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-accent hover:text-white transition-colors text-left group"
               >
                 <span className="flex items-center gap-2">
-                  <Settings className="w-3.5 h-3.5 text-ink-500 group-hover:text-white" />
+                  <Settings className="w-3.5 h-3.5 text-secondary group-hover:text-white" />
                   <span>Settings</span>
                 </span>
               </button>
 
               <button
                 onClick={() => handleAction(refreshAllData)}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-apple-blue hover:text-white transition-colors text-left text-ink-500 group-hover:text-white"
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-accent hover:text-white transition-colors text-left text-secondary group-hover:text-white"
               >
                 <span className="flex items-center gap-2">
-                  <RotateCcw className="w-3.5 h-3.5 text-ink-400 group-hover:text-white" />
+                  <RotateCcw className="w-3.5 h-3.5 text-secondary group-hover:text-white" />
                   <span>Reload Ledger</span>
                 </span>
               </button>
             </div>
           </div>
-        </GlassSurface>
+        </div>
       </motion.div>
     </AnimatePresence>
   );

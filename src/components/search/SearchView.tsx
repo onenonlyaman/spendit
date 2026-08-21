@@ -95,7 +95,7 @@ export const SearchView: React.FC = () => {
       {/* Apple Spotlight Search Hero Card */}
       <div className="apple-glass-card rounded-3xl p-6 sm:p-7 space-y-4">
         <div>
-          <span className="text-xs uppercase font-mono tracking-wider text-ink-400 dark:text-ink-500 font-semibold block">
+          <span className="text-xs uppercase tracking-wide text-secondary font-semibold block">
             Universal Search & Archive
           </span>
           <h1 className="font-sans font-bold text-2xl sm:text-3xl text-ink-900 dark:text-ink-100 tracking-tight mt-0.5">
@@ -105,19 +105,19 @@ export const SearchView: React.FC = () => {
 
         {/* Large Apple Search Input */}
         <div className="relative flex items-center">
-          <Search className="absolute left-4 w-4 h-4 text-ink-400 pointer-events-none" />
+          <Search className="absolute left-4 w-4 h-4 text-secondary pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search by merchant, note, #tag, or amount..."
-            className="w-full pl-11 pr-10 py-3 rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] text-sm text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue font-sans shadow-inner"
+            className="w-full pl-11 pr-10 py-3 rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] text-sm text-ink-900 dark:text-ink-100 focus-ring font-sans shadow-inner"
             autoFocus
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3.5 p-1 rounded-full text-ink-400 hover:text-ink-700 dark:hover:text-ink-200"
+              className="absolute right-3.5 p-1 rounded-full text-secondary hover:text-ink-700 dark:hover:text-ink-200"
             >
               <X className="w-4 h-4" />
             </button>
@@ -127,12 +127,12 @@ export const SearchView: React.FC = () => {
         {/* Filter Toggle & Quick Tags */}
         <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
           <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
-            <span className="text-[10px] font-mono text-ink-400 mr-1">Quick:</span>
+            <span className="text-xs text-secondary mr-1">Quick:</span>
             {allTags.slice(0, 5).map(tag => (
               <button
                 key={tag}
                 onClick={() => setSearchQuery(tag)}
-                className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/10 hover:bg-apple-blue/15 hover:text-apple-blue transition-colors text-ink-700 dark:text-ink-300"
+                className="text-xs font-mono px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/10 hover:bg-apple-blue/15 hover:text-accent transition-colors text-ink-700 dark:text-ink-300"
               >
                 #{tag}
               </button>
@@ -141,7 +141,7 @@ export const SearchView: React.FC = () => {
 
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="inline-flex items-center space-x-1 text-xs font-semibold text-apple-blue hover:underline"
+            className="inline-flex items-center space-x-1 text-xs font-semibold text-accent hover:underline"
           >
             <Filter className="w-3.5 h-3.5" />
             <span>{showFilters ? 'Hide Filters' : 'Filter Options'}</span>
@@ -161,11 +161,11 @@ export const SearchView: React.FC = () => {
             >
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
                 <div>
-                  <label className="block text-[10px] font-mono text-ink-500 mb-1">Account</label>
+                  <label className="block text-xs text-secondary mb-1">Account</label>
                   <select
                     value={selectedAccountId}
                     onChange={e => setSelectedAccountId(e.target.value)}
-                    className="w-full px-2.5 py-1.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-xs outline-none"
+                    className="w-full px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 text-xs text-ink-900 dark:text-ink-100 focus-ring cursor-pointer"
                   >
                     <option value="all">All Accounts</option>
                     {accounts.map(a => (
@@ -175,11 +175,11 @@ export const SearchView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-mono text-ink-500 mb-1">Category</label>
+                  <label className="block text-xs text-secondary mb-1">Category</label>
                   <select
                     value={selectedCategoryId}
                     onChange={e => setSelectedCategoryId(e.target.value)}
-                    className="w-full px-2.5 py-1.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-xs outline-none"
+                    className="w-full px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 text-xs text-ink-900 dark:text-ink-100 focus-ring cursor-pointer"
                   >
                     <option value="all">All Categories</option>
                     {categories.map(c => (
@@ -189,11 +189,11 @@ export const SearchView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-mono text-ink-500 mb-1">Type</label>
+                  <label className="block text-xs text-secondary mb-1">Type</label>
                   <select
                     value={selectedType}
                     onChange={e => setSelectedType(e.target.value)}
-                    className="w-full px-2.5 py-1.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-xs outline-none"
+                    className="w-full px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 text-xs text-ink-900 dark:text-ink-100 focus-ring cursor-pointer"
                   >
                     <option value="all">All Types</option>
                     <option value="expense">Expense</option>
@@ -239,7 +239,7 @@ export const SearchView: React.FC = () => {
             <h3 className="font-sans font-semibold text-sm text-ink-800 dark:text-ink-200">
               No matching records found
             </h3>
-            <p className="text-xs text-ink-400">
+            <p className="text-xs text-secondary">
               Try adjusting query keywords or resetting filter parameters.
             </p>
           </div>

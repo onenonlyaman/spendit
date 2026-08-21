@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   BookOpen,
@@ -40,7 +40,14 @@ export const DiaryView: React.FC = () => {
   const [selectedReceipt, setSelectedReceipt] = useState<{ url: string; description: string } | null>(null);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [showReflections, setShowReflections] = useState(false);
-  const [showClosure, setShowClosure] = useState(false);
+  // The day's close is the reflection half of the product. On a past day the
+  // user is reviewing rather than logging, so the closure is the point of the
+  // visit and opens with the page.
+  const [showClosure, setShowClosure] = useState(currentDiaryDate !== getTodayString());
+
+  useEffect(() => {
+    setShowClosure(currentDiaryDate !== getTodayString());
+  }, [currentDiaryDate]);
 
   const handlePrevDay = () => {
     sounds.playPageTurn();
@@ -125,7 +132,7 @@ export const DiaryView: React.FC = () => {
         {/* Glanceable Hero Title & Daily Spend Figure */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 pt-1">
           <div>
-            <span className="text-xs uppercase font-mono tracking-wider text-ink-400 dark:text-ink-500 font-semibold block">
+            <span className="text-xs uppercase tracking-wide text-secondary font-semibold block">
               {headerInfo.dayName}
             </span>
             <h1 className="font-sans font-bold text-xl sm:text-3xl text-ink-900 dark:text-ink-100 tracking-tight mt-0.5">
@@ -134,7 +141,7 @@ export const DiaryView: React.FC = () => {
           </div>
 
           <div className="sm:text-right bg-black/[0.02] dark:bg-white/[0.04] p-3 rounded-2xl border border-black/[0.04] dark:border-white/[0.06]">
-            <span className="text-[11px] font-mono text-ink-500 dark:text-ink-400 block">
+            <span className="text-xs text-secondary block">
               Total Outflow Today
             </span>
             <span className="font-mono font-bold text-xl sm:text-2xl text-ink-900 dark:text-ink-100 tracking-tight">
@@ -157,29 +164,29 @@ export const DiaryView: React.FC = () => {
           <span className="text-xs font-semibold text-ink-700 dark:text-ink-300">
             Transactions ({dayTransactions.length})
           </span>
-          <span className="text-[11px] font-mono text-ink-400">
-            Tap row for details
+          <span className="text-xs text-secondary">
+            Select a row for details
           </span>
         </div>
 
         {dayTransactions.length === 0 ? (
           /* Clean Minimal Empty State */
           <div className="py-12 px-4 text-center space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-black/5 dark:bg-white/10 text-ink-400 dark:text-ink-500 flex items-center justify-center mx-auto text-xl">
+            <div className="w-12 h-12 rounded-2xl bg-black/5 dark:bg-white/10 text-secondary flex items-center justify-center mx-auto text-xl">
               <Coffee className="w-6 h-6" />
             </div>
-            <h3 className="font-sans font-semibold text-base text-ink-800 dark:text-ink-200">
-              No transactions recorded for this day
+            <h3 className="font-sans font-semibold text-lg text-ink-800 dark:text-ink-200">
+              Nothing logged yet
             </h3>
-            <p className="font-sans text-xs text-ink-500 dark:text-ink-400 max-w-sm mx-auto">
-              Type naturally in the Quick Add bar (Press 'N') to log chai, grocery, UPI payments, or transfers.
+            <p className="font-sans text-sm text-secondary max-w-sm mx-auto">
+              Write an entry the way you'd say it — <span className="font-mono text-ink-800 dark:text-ink-200">chai 15 cash</span> — and SpendIt works out the amount, account, and time.
             </p>
             <button
               onClick={() => setIsQuickAddOpen(true)}
-              className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-apple-blue hover:bg-apple-blue/90 text-white text-xs font-semibold shadow-sm transition-all active:scale-95"
+              className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-accent text-white text-xs font-semibold shadow-sm transition-all active:scale-95"
             >
               <Plus className="w-4 h-4" />
-              <span>Log First Entry</span>
+              <span>Log an entry</span>
             </button>
           </div>
         ) : (
@@ -208,7 +215,7 @@ export const DiaryView: React.FC = () => {
             </span>
           </div>
           <ChevronDown
-            className={`w-4 h-4 text-ink-400 transition-transform duration-200 ${
+            className={`w-4 h-4 text-secondary transition-transform duration-200 ${
               showReflections ? 'rotate-180 text-apple-orange' : ''
             }`}
           />
@@ -240,11 +247,11 @@ export const DiaryView: React.FC = () => {
           <div className="flex items-center space-x-2.5">
             <Sparkles className="w-4 h-4 text-apple-green" />
             <span className="text-xs font-semibold text-ink-900 dark:text-ink-100">
-              End-of-Day Closure & Audited Seal
+              Close the day
             </span>
           </div>
           <ChevronDown
-            className={`w-4 h-4 text-ink-400 transition-transform duration-200 ${
+            className={`w-4 h-4 text-secondary transition-transform duration-200 ${
               showClosure ? 'rotate-180 text-apple-green' : ''
             }`}
           />

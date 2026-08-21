@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   AlertCircle,
@@ -162,7 +163,7 @@ export const ChaptersView: React.FC = () => {
       <div className="apple-glass-card rounded-3xl p-6 sm:p-8 space-y-5">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <span className="text-xs uppercase font-mono tracking-wider text-ink-400 dark:text-ink-500 font-semibold block">
+            <span className="text-xs uppercase tracking-wide text-secondary font-semibold block">
               Monthly Financial Chapter
             </span>
             <h1 className="font-sans font-bold text-2xl sm:text-3xl text-ink-900 dark:text-ink-100 tracking-tight mt-0.5">
@@ -204,22 +205,22 @@ export const ChaptersView: React.FC = () => {
         {/* Glanceable Metrics (Income / Expense / Net Balance) */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
           <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]">
-            <span className="text-[11px] font-mono text-ink-500 dark:text-ink-400 block">Total Monthly Inflow</span>
+            <span className="text-xs text-secondary block">Total Monthly Inflow</span>
             <span className="font-mono font-bold text-xl sm:text-2xl text-apple-green block mt-0.5">
               +{formatCurrency(summary.totalIncome, currencySymbol, privacyMode)}
             </span>
           </div>
 
           <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]">
-            <span className="text-[11px] font-mono text-ink-500 dark:text-ink-400 block">Total Outflow</span>
+            <span className="text-xs text-secondary block">Total Outflow</span>
             <span className="font-mono font-bold text-xl sm:text-2xl text-apple-red block mt-0.5">
               -{formatCurrency(summary.totalExpense, currencySymbol, privacyMode)}
             </span>
           </div>
 
           <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]">
-            <span className="text-[11px] font-mono text-ink-500 dark:text-ink-400 block">Net Monthly Balance</span>
-            <span className={`font-mono font-bold text-xl sm:text-2xl block mt-0.5 ${summary.netSavings >= 0 ? 'text-apple-blue' : 'text-apple-red'}`}>
+            <span className="text-xs text-secondary block">Net Monthly Balance</span>
+            <span className={`font-mono font-bold text-xl sm:text-2xl block mt-0.5 ${summary.netSavings >= 0 ? 'text-accent' : 'text-apple-red'}`}>
               {summary.netSavings >= 0 ? '+' : ''}{formatCurrency(summary.netSavings, currencySymbol, privacyMode)}
             </span>
           </div>
@@ -242,10 +243,10 @@ export const ChaptersView: React.FC = () => {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "relative px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-medium transition-colors z-10 whitespace-nowrap",
+ "relative px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-medium transition-colors z-10 whitespace-nowrap",
                     isActive
                       ? "text-ink-900 dark:text-white font-semibold"
-                      : "text-ink-500 hover:text-ink-800 dark:text-ink-400 dark:hover:text-ink-200"
+                      : "text-ink-600 dark:text-ink-300 hover:text-ink-900 dark:hover:text-white"
                   )}
                 >
                   {isActive && (
@@ -278,7 +279,7 @@ export const ChaptersView: React.FC = () => {
           {/* Safe-to-Spend Compass Card */}
           <div className="apple-inset-group shadow-apple-card p-6 space-y-4">
             <div className="flex items-center space-x-2.5 pb-3 border-b border-black/[0.04] dark:border-white/[0.06]">
-              <Sparkles className="w-5 h-5 text-apple-blue" />
+              <Sparkles className="w-5 h-5 text-accent" />
               <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
                 Safe-to-Spend Compass
               </h3>
@@ -286,30 +287,30 @@ export const ChaptersView: React.FC = () => {
 
             <div className="space-y-3">
               <div>
-                <span className="text-xs font-mono text-ink-500 block">Daily Discretionary Allowance:</span>
-                <span className="font-mono font-bold text-3xl text-apple-blue block mt-1">
+                <span className="text-xs text-secondary block">Daily Discretionary Allowance:</span>
+                <span className="font-mono font-bold text-3xl text-accent block mt-1">
                   {formatCurrency(safeToSpend.safeDailySpend, currencySymbol, privacyMode)}
-                  <span className="text-xs font-normal text-ink-500"> /day</span>
+                  <span className="text-xs font-normal text-secondary"> /day</span>
                 </span>
               </div>
 
               <div className="p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06] space-y-1.5 text-xs font-mono">
                 <div className="flex justify-between">
-                  <span className="text-ink-500">Remaining Allowance:</span>
+                  <span className="text-secondary">Remaining Allowance:</span>
                   <span className="font-bold text-ink-900 dark:text-ink-100">
                     {formatCurrency(safeToSpend.remainingAllowance, currencySymbol, privacyMode)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-ink-500">Committed Bills & Rent:</span>
+                  <span className="text-secondary">Committed Bills & Rent:</span>
                   <span className="text-apple-red">-{formatCurrency(fixedBills, currencySymbol, privacyMode)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-ink-500">20% Goal Target:</span>
+                  <span className="text-secondary">20% Goal Target:</span>
                   <span className="text-apple-orange">-{formatCurrency(savingsTarget, currencySymbol, privacyMode)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-ink-500">Days Remaining:</span>
+                  <span className="text-secondary">Days Remaining:</span>
                   <span className="font-bold">{daysRemainingInMonth} days</span>
                 </div>
               </div>
@@ -327,10 +328,10 @@ export const ChaptersView: React.FC = () => {
 
             <div className="space-y-3">
               <div>
-                <span className="text-xs font-mono text-ink-500 block">Average Daily Burn Rate:</span>
+                <span className="text-xs text-secondary block">Average Daily Burn Rate:</span>
                 <span className="font-mono font-bold text-2xl text-ink-900 dark:text-ink-100 block mt-1">
                   {formatCurrency(summary.avgDailySpend, currencySymbol, privacyMode)}
-                  <span className="text-xs font-normal text-ink-500"> /day</span>
+                  <span className="text-xs font-normal text-secondary"> /day</span>
                 </span>
               </div>
 
@@ -341,7 +342,7 @@ export const ChaptersView: React.FC = () => {
                 <div className="space-y-1.5">
                   {categoryBreakdowns.slice(0, 3).map(c => (
                     <div key={c.category.id} className="flex items-center justify-between text-xs font-mono">
-                      <span className="text-ink-600 dark:text-ink-400">{c.category.name}</span>
+                      <span className="text-secondary">{c.category.name}</span>
                       <span className="font-bold text-ink-900 dark:text-ink-100">
                         {formatCurrency(c.totalSpent, currencySymbol, privacyMode)} ({c.percentage.toFixed(0)}%)
                       </span>
@@ -368,7 +369,7 @@ export const ChaptersView: React.FC = () => {
             <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
               Category Envelope Breakdown
             </h3>
-            <span className="text-xs font-mono text-ink-500">
+            <span className="text-xs text-secondary">
               {categoryBreakdowns.length} active spending envelopes
             </span>
           </div>
@@ -404,7 +405,7 @@ export const ChaptersView: React.FC = () => {
                   />
                 </div>
 
-                <div className="flex justify-between text-[10px] font-mono text-ink-400">
+                <div className="flex justify-between text-xs text-secondary">
                   <span>{cat.transactionCount} transactions</span>
                   <span>{cat.percentage.toFixed(1)}% of budget</span>
                 </div>
@@ -448,14 +449,14 @@ export const ChaptersView: React.FC = () => {
               <h3 className="font-sans font-bold text-base text-ink-900 dark:text-ink-100">
                 Recurring Commitments & Subscriptions
               </h3>
-              <p className="text-xs font-mono text-ink-500 mt-0.5">
+              <p className="text-xs text-secondary mt-0.5">
                 Total monthly commitment: {formatCurrency(fixedBills, currencySymbol, privacyMode)}
               </p>
             </div>
 
             <button
               onClick={() => setIsAddRecurringOpen(true)}
-              className="px-3 py-1.5 rounded-xl bg-apple-blue hover:bg-apple-blue/90 text-white text-xs font-semibold flex items-center space-x-1"
+              className="px-3 py-1.5 rounded-xl bg-accent text-white text-xs font-semibold flex items-center space-x-1"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add Recurring</span>
@@ -469,7 +470,7 @@ export const ChaptersView: React.FC = () => {
                   <span className="font-semibold text-xs text-ink-900 dark:text-ink-100 block">
                     {item.name}
                   </span>
-                  <span className="text-[11px] font-mono text-ink-500">
+                  <span className="text-xs text-secondary">
                     Due every month on day {item.dayOfMonth}
                   </span>
                 </div>
@@ -480,13 +481,13 @@ export const ChaptersView: React.FC = () => {
                   </span>
                   <button
                     onClick={() => handleOpenEditRecurring(item)}
-                    className="p-1 text-ink-400 hover:text-ink-900 dark:hover:text-ink-100"
+                    className="p-1 text-secondary hover:text-ink-900 dark:hover:text-ink-100"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => deleteRecurring(item.id)}
-                    className="p-1 text-ink-400 hover:text-apple-red"
+                    className="p-1 text-secondary hover:text-apple-red"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -500,9 +501,13 @@ export const ChaptersView: React.FC = () => {
 
       {/* Add Recurring Modal */}
       <AnimatePresence>
-        {isAddRecurringOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md">
+        {isAddRecurringOpen && typeof document !== 'undefined' && createPortal(
+          <div
+            onClick={() => setIsAddRecurringOpen(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md"
+          >
             <motion.div
+              onClick={(e) => e.stopPropagation()}
               initial={{ opacity: 0, scale: 0.95, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -515,7 +520,7 @@ export const ChaptersView: React.FC = () => {
                 </h3>
                 <button
                   onClick={() => setIsAddRecurringOpen(false)}
-                  className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-ink-400"
+                  className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-secondary"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -532,7 +537,7 @@ export const ChaptersView: React.FC = () => {
                     placeholder='e.g. "Rent", "Netflix", "Broadband", "Gym"'
                     value={recName}
                     onChange={e => setRecName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                    className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm text-ink-900 dark:text-ink-100 focus-ring"
                     autoFocus
                   />
                 </div>
@@ -549,7 +554,7 @@ export const ChaptersView: React.FC = () => {
                       placeholder="0"
                       value={recAmount}
                       onChange={e => setRecAmount(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm font-mono text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm font-mono text-ink-900 dark:text-ink-100 focus-ring"
                     />
                   </div>
 
@@ -563,7 +568,7 @@ export const ChaptersView: React.FC = () => {
                       max="31"
                       value={recDay}
                       onChange={e => setRecDay(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm font-mono text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm font-mono text-ink-900 dark:text-ink-100 focus-ring"
                     />
                   </div>
                 </div>
@@ -578,22 +583,27 @@ export const ChaptersView: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 text-xs font-semibold bg-apple-blue hover:bg-apple-blue/90 text-white rounded-xl shadow-sm"
+                    className="px-4 py-2 text-xs font-semibold bg-accent text-white rounded-xl shadow-sm"
                   >
                     Save Subscription
                   </button>
                 </div>
               </form>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
 
       {/* Edit Recurring Modal */}
       <AnimatePresence>
-        {editingRecurring && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md">
+        {editingRecurring && typeof document !== 'undefined' && createPortal(
+          <div
+            onClick={() => setEditingRecurring(null)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md"
+          >
             <motion.div
+              onClick={(e) => e.stopPropagation()}
               initial={{ opacity: 0, scale: 0.95, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -606,7 +616,7 @@ export const ChaptersView: React.FC = () => {
                 </h3>
                 <button
                   onClick={() => setEditingRecurring(null)}
-                  className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-ink-400"
+                  className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-secondary"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -622,7 +632,7 @@ export const ChaptersView: React.FC = () => {
                     required
                     value={editRecName}
                     onChange={e => setEditRecName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                    className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm text-ink-900 dark:text-ink-100 focus-ring"
                   />
                 </div>
 
@@ -637,7 +647,7 @@ export const ChaptersView: React.FC = () => {
                       required
                       value={editRecAmount}
                       onChange={e => setEditRecAmount(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm font-mono text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm font-mono text-ink-900 dark:text-ink-100 focus-ring"
                     />
                   </div>
 
@@ -651,7 +661,7 @@ export const ChaptersView: React.FC = () => {
                       max="31"
                       value={editRecDay}
                       onChange={e => setEditRecDay(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm font-mono text-ink-900 dark:text-ink-100 outline-none focus:ring-2 focus:ring-apple-blue"
+                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 text-sm font-mono text-ink-900 dark:text-ink-100 focus-ring"
                     />
                   </div>
                 </div>
@@ -666,14 +676,15 @@ export const ChaptersView: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 text-xs font-semibold bg-apple-blue hover:bg-apple-blue/90 text-white rounded-xl shadow-sm"
+                    className="px-4 py-2 text-xs font-semibold bg-accent text-white rounded-xl shadow-sm"
                   >
                     Save Changes
                   </button>
                 </div>
               </form>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
 

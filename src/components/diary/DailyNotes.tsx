@@ -30,7 +30,7 @@ export const DailyNotes: React.FC<DailyNotesProps> = ({ date }) => {
 
   const moods: { id: DailyNote['mood']; label: string; icon: React.ReactNode; colorClass: string; activeClass: string }[] = [
     { id: 'peaceful', label: 'Peaceful', icon: <Coffee className="w-3.5 h-3.5" />, colorClass: 'text-apple-green', activeClass: 'bg-apple-green/15 text-apple-green border-apple-green/30 font-bold' },
-    { id: 'focused', label: 'Focused', icon: <Sparkles className="w-3.5 h-3.5" />, colorClass: 'text-apple-blue', activeClass: 'bg-apple-blue/15 text-apple-blue border-apple-blue/30 font-bold' },
+    { id: 'focused', label: 'Focused', icon: <Sparkles className="w-3.5 h-3.5" />, colorClass: 'text-accent', activeClass: 'bg-apple-blue/15 text-accent border-apple-blue/30 font-bold' },
     { id: 'frugal', label: 'Frugal', icon: <Scale className="w-3.5 h-3.5" />, colorClass: 'text-apple-purple', activeClass: 'bg-apple-purple/15 text-apple-purple border-apple-purple/30 font-bold' },
     { id: 'celebratory', label: 'Celebration', icon: <PartyPopper className="w-3.5 h-3.5" />, colorClass: 'text-apple-orange', activeClass: 'bg-apple-orange/15 text-apple-orange border-apple-orange/30 font-bold' },
     { id: 'stressed', label: 'Heavy', icon: <Zap className="w-3.5 h-3.5" />, colorClass: 'text-apple-red', activeClass: 'bg-apple-red/15 text-apple-red border-apple-red/30 font-bold' },
@@ -75,13 +75,13 @@ export const DailyNotes: React.FC<DailyNotesProps> = ({ date }) => {
                   className={`px-2.5 py-1 rounded-full text-xs font-sans flex items-center space-x-1 transition-all border ${
                     isSelected
                       ? m.activeClass
-                      : 'bg-black/5 dark:bg-white/10 text-ink-500 border-transparent hover:bg-black/10'
+                      : 'bg-black/5 dark:bg-white/10 text-secondary border-transparent hover:bg-black/10'
                   }`}
                   aria-label={`Mood: ${m.label}`}
                   title={`Mood: ${m.label}`}
                 >
                   {m.icon}
-                  <span className="hidden sm:inline text-[11px]">{m.label}</span>
+                  <span className="hidden sm:inline text-xs">{m.label}</span>
                 </motion.button>
               );
             })}
@@ -100,8 +100,8 @@ export const DailyNotes: React.FC<DailyNotesProps> = ({ date }) => {
                   onClick={() => saveDailyNote(date, { weather: w.id })}
                   className={`p-1.5 rounded-full transition-colors flex items-center justify-center ${
                     isSelected
-                      ? 'bg-apple-blue/15 text-apple-blue font-bold shadow-sm'
-                      : 'text-ink-400 hover:text-ink-700 dark:hover:text-ink-200'
+                      ? 'bg-apple-blue/15 text-accent font-bold shadow-sm'
+                      : 'text-secondary hover:text-ink-700 dark:hover:text-ink-200'
                   }`}
                   aria-label={`Weather: ${w.label}`}
                   title={w.label}
@@ -118,13 +118,13 @@ export const DailyNotes: React.FC<DailyNotesProps> = ({ date }) => {
       {isEditing ? (
         <div className="space-y-3">
           <div className="flex items-center space-x-1.5 text-xs">
-            <MapPin className="w-3.5 h-3.5 text-ink-400" />
+            <MapPin className="w-3.5 h-3.5 text-secondary" />
             <input
               type="text"
               value={locationText}
               onChange={e => setLocationText(e.target.value)}
               placeholder="Location stamp (e.g. Corner Cafe, Home Studio)"
-              className="px-3 py-1.5 text-xs rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 w-full outline-none focus:ring-2 focus:ring-apple-blue"
+              className="px-3 py-1.5 text-xs rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 border border-black/10 dark:border-white/10 w-full focus-ring"
             />
           </div>
           <textarea
@@ -132,20 +132,20 @@ export const DailyNotes: React.FC<DailyNotesProps> = ({ date }) => {
             onChange={e => setReflectionText(e.target.value)}
             rows={3}
             placeholder="Write your thoughts about today's spending, intentions, or gratitude..."
-            className="w-full p-3 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 font-sans text-xs border border-black/10 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-apple-blue leading-relaxed"
+            className="w-full p-3 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] text-ink-900 dark:text-ink-100 font-sans text-xs border border-black/10 dark:border-white/10 focus-ring leading-relaxed"
           />
           <div className="flex justify-end space-x-2">
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsEditing(false)}
-              className="px-3 py-1.5 text-xs font-semibold text-ink-600 dark:text-ink-400 rounded-xl hover:bg-black/5 dark:hover:bg-white/10"
+              className="px-3 py-1.5 text-xs font-semibold text-secondary rounded-xl hover:bg-black/5 dark:hover:bg-white/10"
             >
               Cancel
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={handleSave}
-              className="px-4 py-1.5 text-xs font-semibold bg-apple-blue hover:bg-apple-blue/90 text-white rounded-xl flex items-center space-x-1 shadow-sm"
+              className="px-4 py-1.5 text-xs font-semibold bg-accent text-white rounded-xl flex items-center space-x-1 shadow-sm"
             >
               <Save className="w-3.5 h-3.5" />
               <span>Save Reflection</span>
@@ -162,17 +162,17 @@ export const DailyNotes: React.FC<DailyNotesProps> = ({ date }) => {
           className="cursor-pointer group/note rounded-xl p-2.5 hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition-colors"
         >
           {note.location && (
-            <div className="flex items-center space-x-1 text-[11px] font-mono text-ink-400 mb-1">
+            <div className="flex items-center space-x-1 text-xs text-secondary mb-1">
               <MapPin className="w-3 h-3 text-apple-orange" />
               <span>{note.location}</span>
             </div>
           )}
           {note.reflection ? (
             <p className="text-xs font-sans text-ink-800 dark:text-ink-200 leading-relaxed italic">
-              "{note.reflection}"
+ "{note.reflection}"
             </p>
           ) : (
-            <p className="text-xs text-ink-400 dark:text-ink-500 italic">
+            <p className="text-xs text-secondary italic">
               Click to write a note or reflection for today's page...
             </p>
           )}
