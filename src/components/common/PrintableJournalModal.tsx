@@ -171,9 +171,13 @@ export const PrintableJournalModal: React.FC<PrintableJournalModalProps> = ({
             {/* Archival Ledger Top Seal & Title */}
             <div className="border-b-2 border-ink-900 pb-5 mb-6">
               <div className="flex items-center justify-between text-xs font-mono uppercase tracking-widest text-ink-600 mb-2">
-                <span>§ SpendIt • Archival Personal Finance Register</span>
+                <div className="flex items-center space-x-2">
+                  <img src="/logo.png" alt="SpendIt Logo" className="w-4 h-4 rounded object-contain" />
+                  <span>SpendIt • Archival Personal Finance Register</span>
+                </div>
                 <span>Currency: ₹ (INR)</span>
               </div>
+
 
               <div className="flex items-end justify-between">
                 <div>

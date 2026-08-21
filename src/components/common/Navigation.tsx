@@ -62,9 +62,12 @@ export const Navigation: React.FC = () => {
                 className="flex items-center space-x-2.5 text-left group"
                 aria-label="SpendIt Home - Today's Ledger"
               >
-                <div className="w-9 h-9 rounded-lg bg-ink-900 dark:bg-paper-200 text-paper-50 dark:text-ink-900 flex items-center justify-center font-serif text-lg font-bold shadow-sm group-hover:rotate-3 transition-transform">
-                  §
-                </div>
+                <img
+                  src="/logo.png"
+                  alt="SpendIt Logo"
+                  className="w-9 h-9 rounded-lg object-contain shadow-sm group-hover:scale-105 transition-transform"
+                />
+
                 <div>
                   <div className="flex items-center space-x-1.5">
                     <span className="font-serif font-bold text-xl tracking-tight text-ink-900 dark:text-ink-100">

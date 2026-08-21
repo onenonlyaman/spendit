@@ -69,22 +69,26 @@ export const OnboardingGuideModal: React.FC<OnboardingGuideModalProps> = ({ onCl
         <div className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1 font-sans">
           {/* Header & Step Counter */}
           <div className="flex items-start justify-between border-b border-paper-300 dark:border-paper-dark-border pb-4">
-            <div className="space-y-1">
-              <div className="flex items-center space-x-2">
-                <span className="text-xs uppercase font-mono tracking-widest text-archival-ochre font-bold">
-                  Journal Initiation
-                </span>
-                <span className="text-paper-400">•</span>
-                <span className="text-xs font-mono text-ink-500">
-                  Step {currentStep} of 3
-                </span>
+            <div className="flex items-center space-x-3">
+              <img src="/logo.png" alt="SpendIt Logo" className="w-10 h-10 rounded-xl object-contain shadow-sm" />
+              <div className="space-y-0.5">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs uppercase font-mono tracking-widest text-archival-ochre font-bold">
+                    Journal Initiation
+                  </span>
+                  <span className="text-paper-400">•</span>
+                  <span className="text-xs font-mono text-ink-500">
+                    Step {currentStep} of 3
+                  </span>
+                </div>
+                <h2 className="font-serif font-bold text-2xl text-ink-900 dark:text-ink-100">
+                  {currentStep === 1 && 'Welcome to Your Financial Folio'}
+                  {currentStep === 2 && 'Lightning Shorthand Journaling'}
+                  {currentStep === 3 && 'The Daily Closing Ceremony'}
+                </h2>
               </div>
-              <h2 className="font-serif font-bold text-2xl text-ink-900 dark:text-ink-100">
-                {currentStep === 1 && 'Welcome to Your Financial Folio'}
-                {currentStep === 2 && 'Lightning Shorthand Journaling'}
-                {currentStep === 3 && 'The Daily Closing Ceremony'}
-              </h2>
             </div>
+
 
             <button
               onClick={handleFinish}

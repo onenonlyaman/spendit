@@ -100,7 +100,8 @@ export const App: React.FC = () => {
           {/* Artisanal Ledger Footer */}
           <footer className="mt-auto py-6 border-t border-paper-300 dark:border-paper-dark-border bg-paper-50 dark:bg-paper-dark-card text-ink-500 text-xs mb-16 sm:mb-0">
             <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2.5">
+                <img src="/logo.png" alt="SpendIt Logo" className="w-5 h-5 rounded object-contain" />
                 <span className="font-serif font-bold text-ink-800 dark:text-ink-200">
                   SpendIt
                 </span>
@@ -109,6 +110,7 @@ export const App: React.FC = () => {
                   Handwritten Financial Ledger & Diary
                 </span>
               </div>
+
           
               {/* Keyboard Shortcut Cheatsheet */}
               <div className="hidden sm:flex flex-wrap items-center gap-2 text-[10px] font-mono">

@@ -157,19 +157,23 @@ export const SettingsView: React.FC = () => {
     <div className="max-w-4xl mx-auto px-4 py-6 sm:px-6 space-y-6">
       {/* Header */}
       <div className="bg-paper-50 dark:bg-paper-dark-card p-6 rounded-2xl border-2 border-paper-300 dark:border-paper-dark-border shadow-ledger flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center space-x-2">
-            <span className="text-xs uppercase font-mono tracking-widest text-archival-ochre font-bold">
-              Ledger Preferences & Archival Tools
-            </span>
+        <div className="flex items-center space-x-4">
+          <img src="/logo.png" alt="SpendIt Logo" className="w-14 h-14 rounded-2xl object-contain shadow-md border border-paper-200 dark:border-paper-dark-border" />
+          <div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs uppercase font-mono tracking-widest text-archival-ochre font-bold">
+                Ledger Preferences & Archival Tools
+              </span>
+            </div>
+            <h1 className="font-serif font-bold text-3xl text-ink-900 dark:text-ink-100 mt-1">
+              Settings & Sovereignty
+            </h1>
+            <p className="text-xs font-sans text-ink-600 dark:text-ink-400 mt-0.5">
+              Your financial journal stays strictly private on your personal device. Zero tracking. Zero cloud lock-in.
+            </p>
           </div>
-          <h1 className="font-serif font-bold text-3xl text-ink-900 dark:text-ink-100 mt-1">
-            Settings & Sovereignty
-          </h1>
-          <p className="text-xs font-sans text-ink-600 dark:text-ink-400 mt-0.5">
-            Your financial journal stays strictly private on your personal device. Zero tracking. Zero cloud lock-in.
-          </p>
         </div>
+
 
         <button
           onClick={() => setIsOnboardingModalOpen(true)}
