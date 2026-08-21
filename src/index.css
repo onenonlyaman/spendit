@@ -1,0 +1,226 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --paper-pattern-color: rgba(222, 205, 180, 0.4);
+    --paper-line-color: rgba(207, 184, 151, 0.35);
+    --margin-line-color: rgba(184, 58, 58, 0.25);
+  }
+
+  .dark {
+    --paper-pattern-color: rgba(56, 54, 48, 0.5);
+    --paper-line-color: rgba(65, 62, 55, 0.45);
+    --margin-line-color: rgba(184, 58, 58, 0.3);
+  }
+}
+
+/* Custom Paper Textures & Ruled Pages */
+.ruled-paper {
+  background-color: #FCFAF6;
+  background-image: 
+    linear-gradient(to right, transparent 54px, var(--margin-line-color) 54px, var(--margin-line-color) 56px, transparent 56px),
+    repeating-linear-gradient(to bottom, transparent 0, transparent 31px, var(--paper-line-color) 31px, var(--paper-line-color) 32px);
+  background-size: 100% 100%, 100% 32px;
+}
+
+.dark .ruled-paper {
+  background-color: #1F1E1B;
+}
+
+.grid-paper {
+  background-image: 
+    linear-gradient(to right, var(--paper-pattern-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--paper-pattern-color) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.dotted-paper {
+  background-image: radial-gradient(var(--paper-pattern-color) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* Authentic Rubber Stamp Effects */
+.rubber-stamp {
+  display: inline-block;
+  text-transform: uppercase;
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 0.25rem 0.6rem;
+  border: 2px dashed currentColor;
+  border-radius: 4px;
+  mask-image: radial-gradient(circle, rgba(0,0,0,1) 85%, rgba(0,0,0,0.6) 100%);
+  user-select: none;
+}
+
+.stamp-sealed {
+  color: #B83A3A;
+  border: 2.5px solid #B83A3A;
+  transform: rotate(-3deg);
+  box-shadow: 0 0 0 1px #B83A3A;
+  animation: stamp-drop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes stamp-drop {
+  0% {
+    opacity: 0;
+    transform: scale(1.4) rotate(8deg);
+  }
+  60% {
+    transform: scale(0.95) rotate(-4deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-3deg);
+  }
+}
+
+.stamp-reconciled {
+  color: #2A6F4E;
+  border: 2px solid #2A6F4E;
+  transform: rotate(1.5deg);
+}
+
+.stamp-nospend {
+  color: #C07D2B;
+  border: 2px dashed #C07D2B;
+  transform: rotate(-2deg);
+}
+
+/* Wax Seal Medallion */
+.wax-seal-medallion {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #D44848 0%, #B83A3A 60%, #8A2525 100%);
+  box-shadow: 0 3px 8px rgba(138, 37, 37, 0.4), inset 0 2px 3px rgba(255, 255, 255, 0.25), inset 0 -2px 3px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FCFAF6;
+  font-family: 'Newsreader', serif;
+  font-weight: 700;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  animation: stamp-drop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes ribbon-sway {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(4deg); }
+  75% { transform: rotate(-3deg); }
+}
+
+.ribbon-active {
+  animation: ribbon-sway 0.8s ease-in-out;
+}
+
+/* Washi Tape Ribbon Effect */
+.washi-tape {
+  background-color: rgba(245, 239, 228, 0.85);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-left: 3px dashed rgba(180, 160, 130, 0.4);
+  border-right: 3px dashed rgba(180, 160, 130, 0.4);
+}
+
+/* Handwritten Notes Styling */
+.handwriting-note {
+  font-family: 'Caveat', 'Kalam', cursive;
+  font-size: 1.25rem;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+}
+
+/* Custom Scrollbar for Ledger Aesthetics */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(236, 226, 208, 0.4);
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: rgba(36, 35, 31, 0.4);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(142, 156, 148, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(84, 96, 89, 0.8);
+}
+
+/* Bookmark Ribbon */
+.bookmark-ribbon {
+  position: absolute;
+  top: 0;
+  right: 28px;
+  width: 24px;
+  height: 48px;
+  background-color: #B83A3A;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%);
+  transition: transform 0.2s ease;
+}
+
+.bookmark-ribbon:hover {
+  transform: translateY(4px);
+}
+
+/* Print Optimization for Archival PDF Export */
+@media print {
+  @page {
+    margin: 12mm 15mm;
+    size: auto;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #1a1a1a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide screen navigation, footers, and modal chrome */
+  header,
+  footer,
+  .no-print,
+  button:not(.print-keep),
+  .bookmark-ribbon {
+    display: none !important;
+  }
+
+  /* Full width document print container */
+  #printable-journal-doc {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+  }
+
+  /* Ensure tables don't break awkwardly across pages */
+  table {
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tfoot {
+    display: table-footer-group;
+  }
+}

@@ -1,0 +1,415 @@
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { api } from '../lib/api';
+import { calculateAccountBalances } from '../lib/accounting';
+import { getRelativeDayOffset, getTodayString } from '../lib/utils';
+import { Account, Category, DailyNote, MoneyGoal, RecurringItem, Transaction } from '../types';
+
+export type ActiveView = 'diary' | 'accounts' | 'chapters' | 'goals' | 'simulator' | 'search' | 'settings';
+
+interface FinanceContextType {
+  // State
+  transactions: Transaction[];
+  accounts: Account[];
+  categories: Category[];
+  goals: MoneyGoal[];
+  dailyNotes: Record<string, DailyNote>;
+  recurring: RecurringItem[];
+
+  // Navigation & UI
+  currentDiaryDate: string;
+  activeView: ActiveView;
+  privacyMode: boolean;
+  currencySymbol: string;
+  isQuickAddOpen: boolean;
+  theme: 'light' | 'dark';
+  isLoading: boolean;
+
+  // Navigation Setters
+  setDiaryDate: (date: string) => void;
+  goToPreviousDay: () => void;
+  goToNextDay: () => void;
+  goToToday: () => void;
+  setActiveView: (view: ActiveView) => void;
+  togglePrivacyMode: () => void;
+  setCurrencySymbol: (sym: string) => void;
+  setIsQuickAddOpen: (open: boolean) => void;
+  toggleTheme: () => void;
+  refreshAllData: () => Promise<void>;
+
+  // Transaction Operations
+  addTransaction: (txn: Omit<Transaction, 'id' | 'createdAt'>) => Promise<Transaction>;
+  updateTransaction: (id: string, updates: Partial<Transaction>) => Promise<void>;
+  deleteTransaction: (id: string) => Promise<void>;
+  toggleReconcile: (id: string) => Promise<void>;
+
+  // Account Operations
+  addAccount: (acc: Omit<Account, 'id' | 'balance'>) => Promise<void>;
+  updateAccount: (id: string, updates: Partial<Account>) => Promise<void>;
+  deleteAccount: (id: string) => Promise<void>;
+  transferFunds: (fromId: string, toId: string, amount: number, description?: string) => Promise<void>;
+
+  // Category Operations
+  addCategory: (cat: Omit<Category, 'id'>) => Promise<void>;
+  updateCategory: (id: string, updates: Partial<Category>) => Promise<void>;
+
+  // Goal Operations
+  addGoal: (goal: Omit<MoneyGoal, 'id' | 'currentAmount'>) => Promise<void>;
+  updateGoal: (id: string, updates: Partial<MoneyGoal>) => Promise<void>;
+  deleteGoal: (id: string) => Promise<void>;
+  contributeToGoal: (goalId: string, amount: number, fromAccountId: string) => Promise<void>;
+
+  // Daily Notes Operations
+  getNoteForDate: (date: string) => DailyNote;
+  saveDailyNote: (date: string, updates: Partial<DailyNote>) => Promise<void>;
+  toggleSealDay: (date: string) => Promise<void>;
+
+  // Recurring Operations
+  addRecurring: (item: Omit<RecurringItem, 'id'>) => Promise<void>;
+  updateRecurring: (id: string, updates: Partial<RecurringItem>) => Promise<void>;
+  deleteRecurring: (id: string) => Promise<void>;
+
+  // Backup & Reset
+  exportBackup: () => Promise<any>;
+  importBackup: (jsonStr: string) => Promise<boolean>;
+  resetAllData: () => Promise<void>;
+}
+
+const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
+
+export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [rawTransactions, setRawTransactions] = useState<Transaction[]>([]);
+  const [rawAccounts, setRawAccounts] = useState<Account[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [goals, setGoals] = useState<MoneyGoal[]>([]);
+  const [dailyNotes, setDailyNotes] = useState<Record<string, DailyNote>>({});
+  const [recurring, setRecurring] = useState<RecurringItem[]>([]);
+
+  const [currentDiaryDate, setCurrentDiaryDate] = useState<string>(getTodayString());
+  const [activeView, setActiveView] = useState<ActiveView>('diary');
+  const [privacyMode, setPrivacyMode] = useState<boolean>(false);
+  const [currencySymbol, setCurrencySymbol] = useState<string>('₹');
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState<boolean>(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Fetch all data from SQLite
+  const refreshAllData = async () => {
+    try {
+      setIsLoading(true);
+      const [accs, cats, txns, notes, gls, recs] = await Promise.all([
+        api.getAccounts(),
+        api.getCategories(),
+        api.getTransactions(),
+        api.getDailyNotes(),
+        api.getGoals(),
+        api.getRecurring(),
+      ]);
+
+      setRawAccounts(accs);
+      setCategories(cats);
+      setRawTransactions(txns);
+      setDailyNotes(notes);
+      setGoals(gls);
+      setRecurring(recs);
+    } catch (err) {
+      console.error('Error fetching SQLite data:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Initial load from SQLite
+  useEffect(() => {
+    refreshAllData();
+  }, []);
+
+  // Compute live real-time account balances from transactions
+  const accounts = useMemo(() => {
+    return calculateAccountBalances(rawAccounts, rawTransactions);
+  }, [rawAccounts, rawTransactions]);
+
+  // Global Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setIsQuickAddOpen(prev => !prev);
+      } else if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        setIsQuickAddOpen(true);
+      } else if (e.key === 'p' || e.key === 'P') {
+        e.preventDefault();
+        setPrivacyMode(prev => !prev);
+      } else if (e.key === 't' || e.key === 'T') {
+        e.preventDefault();
+        setCurrentDiaryDate(getTodayString());
+        setActiveView('diary');
+      } else if (e.key === 'ArrowLeft' && activeView === 'diary') {
+        goToPreviousDay();
+      } else if (e.key === 'ArrowRight' && activeView === 'diary') {
+        goToNextDay();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeView, currentDiaryDate]);
+
+  // Navigation handlers
+  const goToPreviousDay = () => setCurrentDiaryDate(prev => getRelativeDayOffset(prev, -1));
+  const goToNextDay = () => setCurrentDiaryDate(prev => getRelativeDayOffset(prev, 1));
+  const goToToday = () => setCurrentDiaryDate(getTodayString());
+  const togglePrivacyMode = () => setPrivacyMode(prev => !prev);
+
+  const toggleTheme = () => {
+    setTheme(prev => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      if (next === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      return next;
+    });
+  };
+
+  // Transaction Actions
+  const addTransaction = async (txnData: Omit<Transaction, 'id' | 'createdAt'>): Promise<Transaction> => {
+    const created = await api.createTransaction(txnData);
+    setRawTransactions(prev => [created, ...prev]);
+    return created;
+  };
+
+  const updateTransaction = async (id: string, updates: Partial<Transaction>) => {
+    await api.updateTransaction(id, updates);
+    setRawTransactions(prev => prev.map(t => (t.id === id ? { ...t, ...updates } : t)));
+  };
+
+  const deleteTransaction = async (id: string) => {
+    await api.deleteTransaction(id);
+    setRawTransactions(prev => prev.filter(t => t.id !== id));
+  };
+
+  const toggleReconcile = async (id: string) => {
+    const nextReconciled = await api.toggleReconcile(id);
+    setRawTransactions(prev =>
+      prev.map(t => (t.id === id ? { ...t, reconciled: nextReconciled } : t))
+    );
+  };
+
+  // Account Actions
+  const addAccount = async (accData: Omit<Account, 'id' | 'balance'>) => {
+    const created = await api.createAccount(accData);
+    setRawAccounts(prev => [...prev, created]);
+  };
+
+  const updateAccount = async (id: string, updates: Partial<Account>) => {
+    await api.updateAccount(id, updates);
+    setRawAccounts(prev => prev.map(a => (a.id === id ? { ...a, ...updates } : a)));
+  };
+
+  const deleteAccount = async (id: string) => {
+    await api.deleteAccount(id);
+    setRawAccounts(prev => prev.filter(a => a.id !== id));
+  };
+
+  const transferFunds = async (fromId: string, toId: string, amount: number, description?: string) => {
+    const fromAcc = accounts.find(a => a.id === fromId);
+    const toAcc = accounts.find(a => a.id === toId);
+    if (!fromAcc || !toAcc || amount <= 0) return;
+
+    await addTransaction({
+      date: currentDiaryDate,
+      time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+      description: description || `Transfer: ${fromAcc.name} → ${toAcc.name}`,
+      amount,
+      type: 'transfer',
+      accountId: fromId,
+      destinationAccountId: toId,
+      categoryId: categories[0]?.id || 'cat_transfer',
+      tags: ['#transfer'],
+      reconciled: true,
+    });
+  };
+
+  // Category Actions
+  const addCategory = async (catData: Omit<Category, 'id'>) => {
+    const created = await api.createCategory(catData);
+    setCategories(prev => [...prev, created]);
+  };
+
+  const updateCategory = async (id: string, updates: Partial<Category>) => {
+    await api.updateCategory(id, updates);
+    setCategories(prev => prev.map(c => (c.id === id ? { ...c, ...updates } : c)));
+  };
+
+  // Goal Actions
+  const addGoal = async (goalData: Omit<MoneyGoal, 'id' | 'currentAmount'>) => {
+    const created = await api.createGoal(goalData);
+    setGoals(prev => [...prev, created]);
+  };
+
+  const updateGoal = async (id: string, updates: Partial<MoneyGoal>) => {
+    await api.updateGoal(id, updates);
+    setGoals(prev => prev.map(g => (g.id === id ? { ...g, ...updates } : g)));
+  };
+
+  const deleteGoal = async (id: string) => {
+    await api.deleteGoal(id);
+    setGoals(prev => prev.filter(g => g.id !== id));
+  };
+
+  const contributeToGoal = async (goalId: string, amount: number, fromAccountId: string) => {
+    const updated = await api.contributeToGoal(goalId, amount, fromAccountId, currentDiaryDate);
+    setGoals(prev => prev.map(g => (g.id === goalId ? updated : g)));
+    await refreshAllData();
+  };
+
+  // Daily Notes Actions
+  const getNoteForDate = (date: string): DailyNote => {
+    return dailyNotes[date] || {
+      date,
+      mood: 'peaceful',
+      weather: 'sunny',
+      reflection: '',
+      sealed: false,
+    };
+  };
+
+  const saveDailyNote = async (date: string, updates: Partial<DailyNote>) => {
+    const current = dailyNotes[date] || {
+      date,
+      mood: 'peaceful',
+      weather: 'sunny',
+      reflection: '',
+      sealed: false,
+    };
+    const updated = { ...current, ...updates };
+    setDailyNotes(prev => ({ ...prev, [date]: updated }));
+    await api.saveDailyNote(date, updated);
+  };
+
+  const toggleSealDay = async (date: string) => {
+    const current = dailyNotes[date] || {
+      date,
+      mood: 'peaceful',
+      weather: 'sunny',
+      reflection: '',
+      sealed: false,
+    };
+    await saveDailyNote(date, { sealed: !current.sealed });
+  };
+
+  // Recurring Actions
+  const addRecurring = async (itemData: Omit<RecurringItem, 'id'>) => {
+    const created = await api.createRecurring(itemData);
+    setRecurring(prev => [...prev, created]);
+  };
+
+  const updateRecurring = async (id: string, updates: Partial<RecurringItem>) => {
+    await api.updateRecurring(id, updates);
+    setRecurring(prev => prev.map(r => (r.id === id ? { ...r, ...updates } : r)));
+  };
+
+  const deleteRecurring = async (id: string) => {
+    await api.deleteRecurring(id);
+    setRecurring(prev => prev.filter(r => r.id !== id));
+  };
+
+  // Backup & Reset
+  const exportBackup = async () => {
+    return await api.exportBackup();
+  };
+
+  const importBackup = async (jsonStr: string): Promise<boolean> => {
+    try {
+      const data = JSON.parse(jsonStr);
+      const ok = await api.importBackup(data);
+      if (ok) {
+        await refreshAllData();
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
+  const resetAllData = async () => {
+    await api.resetDatabase();
+    setRawTransactions([]);
+    setRawAccounts([]);
+    setCategories([]);
+    setGoals([]);
+    setDailyNotes({});
+    setRecurring([]);
+  };
+
+  return (
+    <FinanceContext.Provider
+      value={{
+        transactions: rawTransactions,
+        accounts,
+        categories,
+        goals,
+        dailyNotes,
+        recurring,
+        currentDiaryDate,
+        activeView,
+        privacyMode,
+        currencySymbol,
+        isQuickAddOpen,
+        theme,
+        isLoading,
+        setDiaryDate: setCurrentDiaryDate,
+        goToPreviousDay,
+        goToNextDay,
+        goToToday,
+        setActiveView,
+        togglePrivacyMode,
+        setCurrencySymbol,
+        setIsQuickAddOpen,
+        toggleTheme,
+        refreshAllData,
+        addTransaction,
+        updateTransaction,
+        deleteTransaction,
+        toggleReconcile,
+        addAccount,
+        updateAccount,
+        deleteAccount,
+        transferFunds,
+        addCategory,
+        updateCategory,
+        addGoal,
+        updateGoal,
+        deleteGoal,
+        contributeToGoal,
+        getNoteForDate,
+        saveDailyNote,
+        toggleSealDay,
+        addRecurring,
+        updateRecurring,
+        deleteRecurring,
+        exportBackup,
+        importBackup,
+        resetAllData,
+      }}
+    >
+      {children}
+    </FinanceContext.Provider>
+  );
+};
+
+export const useFinance = () => {
+  const context = useContext(FinanceContext);
+  if (!context) {
+    throw new Error('useFinance must be used within a FinanceProvider');
+  }
+  return context;
+};
