@@ -3,7 +3,7 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import semver from 'semver';
 import { sendNativeNotification } from './notifications';
 
-export type UpdateKind = 'ota' | 'upgrade' | null;
+export type UpdateKind = 'ota' | 'upgrade' | 'android-apk' | null;
 
 export interface AppUpdateState {
   available: boolean;
@@ -15,22 +15,76 @@ export interface AppUpdateState {
   downloadProgress?: number;
   isDownloading: boolean;
   isDownloaded: boolean;
+  apkDownloadUrl?: string;
   error?: string;
 }
 
-export const CURRENT_APP_VERSION = '1.0.4';
+export const CURRENT_APP_VERSION = '1.0.5';
 export const GITHUB_RELEASES_URL = 'https://github.com/onenonlyaman/spendit/releases';
 
+export const GITHUB_API_LATEST_URL = 'https://api.github.com/repos/onenonlyaman/spendit/releases/latest';
 
-
+export function isAndroid(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return /android/i.test(navigator.userAgent);
+}
 
 /**
- * Checks for updates via GitHub Releases using Tauri v2 updater.
- * Classifies releases into:
- * - 'ota': Minor/patch update that can be downloaded and installed in-app.
- * - 'upgrade': Major version leaps (e.g. v1.x -> v2.x) that require downloading the latest release from GitHub.
+ * Checks for updates across Desktop and Android platforms.
  */
 export async function checkForAppUpdates(): Promise<AppUpdateState> {
+  // 1. Android APK Update Check (Via GitHub Releases API)
+  if (isAndroid()) {
+    try {
+      const response = await fetch(GITHUB_API_LATEST_URL, {
+        headers: { Accept: 'application/vnd.github.v3+json' },
+      });
+      if (!response.ok) {
+        throw new Error(`GitHub API returned status ${response.status}`);
+      }
+      const release = await response.json();
+      const latestTag = release.tag_name ? release.tag_name.replace(/^v/, '') : '';
+
+      if (latestTag && semver.valid(latestTag) && semver.gt(latestTag, CURRENT_APP_VERSION)) {
+        const apkAsset = release.assets?.find((a: any) =>
+          a.name && (a.name.endsWith('.apk') || a.name.includes('universal.apk'))
+        ) || release.assets?.find((a: any) => a.name?.endsWith('.apk'));
+
+        return {
+          available: true,
+          kind: 'android-apk',
+          currentVersion: CURRENT_APP_VERSION,
+          newVersion: latestTag,
+          body: release.body || undefined,
+          apkDownloadUrl: apkAsset ? apkAsset.browser_download_url : GITHUB_RELEASES_URL,
+          isDownloading: false,
+          isDownloaded: false,
+        };
+      }
+
+      return {
+        available: false,
+        kind: null,
+        currentVersion: CURRENT_APP_VERSION,
+        newVersion: CURRENT_APP_VERSION,
+        isDownloading: false,
+        isDownloaded: false,
+      };
+    } catch (err: any) {
+      console.warn('Android update check note:', err?.message || err);
+      return {
+        available: false,
+        kind: null,
+        currentVersion: CURRENT_APP_VERSION,
+        newVersion: CURRENT_APP_VERSION,
+        isDownloading: false,
+        isDownloaded: false,
+        error: err?.message || 'Unable to check for Android updates',
+      };
+    }
+  }
+
+  // 2. Desktop Windows Tauri v2 Updater Check
   try {
     const update = await check();
     if (!update || !update.available) {
@@ -47,7 +101,6 @@ export async function checkForAppUpdates(): Promise<AppUpdateState> {
     const currentVer = update.currentVersion || CURRENT_APP_VERSION;
     const newVer = update.version;
 
-    // Compare versions using semver
     let kind: UpdateKind = 'ota';
     const cleanCurrent = semver.clean(currentVer) || currentVer;
     const cleanNew = semver.clean(newVer) || newVer;
@@ -86,7 +139,7 @@ export async function checkForAppUpdates(): Promise<AppUpdateState> {
 }
 
 /**
- * Downloads and installs an OTA in-app update.
+ * Downloads and installs an OTA in-app update on Desktop.
  */
 export async function downloadAndInstallOTAUpdate(
   update: Update,
@@ -113,11 +166,22 @@ export async function downloadAndInstallOTAUpdate(
     }
   });
 
-  // Dispatch desktop notification
   await sendNativeNotification(
     '✨ Update Ready to Install',
     `SpendIt v${update.version} has been downloaded. Restart the app to apply the update.`
   );
+}
+
+/**
+ * Initiates Android APK package update.
+ */
+export async function installAndroidAPK(apkUrl?: string): Promise<void> {
+  const url = apkUrl || GITHUB_RELEASES_URL;
+  try {
+    await openUrl(url);
+  } catch {
+    window.open(url, '_blank');
+  }
 }
 
 /**

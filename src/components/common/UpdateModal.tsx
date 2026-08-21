@@ -6,12 +6,14 @@ import {
   Download,
   ExternalLink,
   RefreshCw,
+  Smartphone,
   Sparkles,
   X,
 } from 'lucide-react';
 import {
   AppUpdateState,
   downloadAndInstallOTAUpdate,
+  installAndroidAPK,
   openGitHubReleases,
 } from '../../lib/updater';
 
@@ -27,6 +29,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ updateState, onClose }
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const isMajorUpgrade = updateState.kind === 'upgrade';
+  const isAndroidAPK = updateState.kind === 'android-apk';
 
   const handleStartOTADownload = async () => {
     if (!updateState.rawUpdate) return;
@@ -46,18 +49,44 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ updateState, onClose }
     }
   };
 
+  const handleInstallAndroid = async () => {
+    try {
+      await installAndroidAPK(updateState.apkDownloadUrl);
+      onClose();
+    } catch (err: any) {
+      console.error('Android APK install trigger failed:', err);
+      openGitHubReleases();
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/60 backdrop-blur-sm animate-fadeIn">
       <div className="bg-paper-50 dark:bg-paper-dark-card border-2 border-archival-ochre/40 shadow-2xl rounded-2xl max-w-lg w-full overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="p-6 border-b border-paper-200 dark:border-paper-dark-border bg-paper-100/50 dark:bg-paper-dark/50 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className={`p-2.5 rounded-xl ${isMajorUpgrade ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300' : 'bg-forest-100 text-forest-800 dark:bg-forest-900/40 dark:text-forest-300'}`}>
-              {isMajorUpgrade ? <AlertTriangle className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
+            <div className={`p-2.5 rounded-xl ${
+              isMajorUpgrade
+                ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
+                : isAndroidAPK
+                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                : 'bg-forest-100 text-forest-800 dark:bg-forest-900/40 dark:text-forest-300'
+            }`}>
+              {isMajorUpgrade ? (
+                <AlertTriangle className="w-5 h-5" />
+              ) : isAndroidAPK ? (
+                <Smartphone className="w-5 h-5" />
+              ) : (
+                <Sparkles className="w-5 h-5" />
+              )}
             </div>
             <div>
               <h3 className="font-serif font-bold text-lg text-ink-900 dark:text-ink-50">
-                {isMajorUpgrade ? 'Major Release Upgrade Available' : 'New In-App Update Available'}
+                {isMajorUpgrade
+                  ? 'Major Release Upgrade Available'
+                  : isAndroidAPK
+                  ? 'New Android Release Available'
+                  : 'New In-App Update Available'}
               </h3>
               <p className="text-xs font-mono text-ink-500">
                 Current: <span className="font-bold">v{updateState.currentVersion}</span> → Available: <span className="font-bold text-archival-ochre">v{updateState.newVersion}</span>
@@ -84,6 +113,16 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ updateState, onClose }
                 Version <strong>v{updateState.newVersion}</strong> includes major native platform updates. To upgrade safely while preserving your local database, download the new installer directly from our GitHub Releases page.
               </p>
             </div>
+          ) : isAndroidAPK ? (
+            <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 rounded-xl p-4 space-y-2">
+              <p className="font-medium text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
+                <Smartphone className="w-4 h-4" />
+                Android APK Package Update
+              </p>
+              <p className="text-xs text-emerald-800/80 dark:text-emerald-300/80 leading-relaxed">
+                Version <strong>v{updateState.newVersion}</strong> is ready to download and install. Your local SQLite ledger records will be preserved seamlessly during update.
+              </p>
+            </div>
           ) : (
             <div className="bg-forest-50 dark:bg-forest-950/30 border border-forest-200 dark:border-forest-900/50 rounded-xl p-4 space-y-2">
               <p className="font-medium text-forest-900 dark:text-forest-200 flex items-center gap-2">
@@ -108,7 +147,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ updateState, onClose }
             </div>
           )}
 
-          {/* Progress Bar (For OTA Download) */}
+          {/* Progress Bar (For Desktop OTA Download) */}
           {isDownloading && (
             <div className="space-y-2 py-2">
               <div className="flex justify-between text-xs font-mono text-ink-600 dark:text-ink-400">
@@ -151,7 +190,15 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ updateState, onClose }
             {isDownloaded ? 'Close' : 'Later'}
           </button>
 
-          {isMajorUpgrade ? (
+          {isAndroidAPK ? (
+            <button
+              onClick={handleInstallAndroid}
+              className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-mono font-bold flex items-center space-x-2 transition-transform active:scale-95 shadow-sm"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download & Install APK</span>
+            </button>
+          ) : isMajorUpgrade ? (
             <button
               onClick={openGitHubReleases}
               className="px-4 py-2 bg-archival-ochre hover:bg-archival-ochre-dark text-white rounded-xl text-xs font-mono font-bold flex items-center space-x-2 transition-transform active:scale-95 shadow-sm"
