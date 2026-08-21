@@ -76,10 +76,13 @@ export const SettingsView: React.FC = () => {
       if (res.available) {
         setUpdateCheckStatus(`Found ${res.kind === 'upgrade' ? 'upgrade' : 'update'} v${res.newVersion}!`);
         setShowUpdateModal(true);
+      } else if (res.error) {
+        setUpdateCheckStatus(`Status: ${res.error}`);
       } else {
         setUpdateCheckStatus(`✓ SpendIt is up to date (v${CURRENT_APP_VERSION})`);
         setTimeout(() => setUpdateCheckStatus(null), 5000);
       }
+
     } catch (err: any) {
       setUpdateCheckStatus('Could not check updates: ' + (err?.message || 'Offline'));
     } finally {
