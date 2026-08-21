@@ -1,7 +1,8 @@
 [package]
 name = "SpendIt"
-version = "1.0.0"
+version = "1.0.1"
 description = "SpendIt — Personal Financial Diary"
+
 
 authors = ["you"]
 license = ""
